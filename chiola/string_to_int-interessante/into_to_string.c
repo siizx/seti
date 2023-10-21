@@ -1,4 +1,8 @@
 #include <stdio.h>
+#include <stdlib.h>
+
+const bool debug = false;
+
 
 // funzione per contare le cifre dell'intero.
 int countDigits(int num) {
@@ -20,11 +24,19 @@ int countDigits(int num) {
 
 
 int main() {
-    int num = 123456789; // Your integer value
 
-    char str[countDigits(num)]; // Assuming a buffer large enough to hold the string. +1 for the null terminator!
+    char *strinput = NULL;
+    int num; // Your integer value
+
+    printf("Inserisci un intero: ");
+    scanf("%m[^\n]", &strinput);
+
+    num = atoi(strinput); // converto ascii to integer.
+
+    char str[countDigits(num)]; // 
     
-    printf("num size = %d, str size = %ld\n", countDigits(num), sizeof(str));
+    if(debug)
+        printf("num size = %d, str size = %ld\n", countDigits(num), sizeof(str)); //stampo il numero di cifre + numero di caratteri per controllare la correttezza.
 
     sprintf(str, "%d", num); // Convert int to string
 
