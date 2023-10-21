@@ -38,28 +38,27 @@ double do_ping(size_t msg_size, int msg_no, char message[msg_size], int tcp_sock
 
     /*** write msg_no at the beginning of the message buffer ***/
 /*** TO BE DONE START ***/
-    sprintf(message,"%d\n", msg_no);
+	if(sprintf(message, "%d", msg_no) < 0){
+		perror("Errore nella sprintf in do_ping. ");
+	};
 
 /*** TO BE DONE END ***/
 
     /*** Store the current time in send_time ***/
 /*** TO BE DONE START ***/
-    if(clock_gettime(CLOCK_REALTIME, &send_time) < 0){
-		perror("Errore nella clock_gettime.");
-		return -1;
+    
+	if(clock_gettime(CLOCK_REALTIME, &send_time) < 0){
+		perror("Errore nella clock_gettime in do_ping. ");
 	};
+
 /*** TO BE DONE END ***/
 
     /*** Send the message through the socket (blocking)  ***/
 /*** TO BE DONE START ***/
-	sent_bytes = send(tcp_socket, message, msg_size, 0);
-	if (sent_bytes < 0) {
-    perror("Errore nell'invio dei dati.");
-    return -1;
-	} else if (sent_bytes < msg_size) {
-    	perror("Non tutti i dati sono stati mandati.");
-		return -1;
-	}
+	if(sent_bytes = send(SOCK_STREAM, message, msg_size, 0) < 0){
+		perror("Errore nell'invio del buffer in do_ping. ");
+	};
+
 
 /*** TO BE DONE END ***/
 
@@ -73,11 +72,9 @@ double do_ping(size_t msg_size, int msg_no, char message[msg_size], int tcp_sock
     /*** Store the current time in recv_time ***/
 /*** TO BE DONE START ***/
 
-	if(clock_gettime(CLOCK_REALTIME, &recv_time) < 0){
-		perror("Errore nella clock_gettime.(recv)");
-		return -1;
+	if(clock_gettime(CLOCK_REALTIME, &recv_time) != 0){
+		perror("Errore nel clock_gettime in do_ping. (recv). ");
 	};
-
 
 /*** TO BE DONE END ***/
 
