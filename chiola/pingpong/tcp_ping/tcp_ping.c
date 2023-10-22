@@ -38,7 +38,7 @@ double do_ping(size_t msg_size, int msg_no, char message[msg_size], int tcp_sock
 
     /*** write msg_no at the beginning of the message buffer ***/
 /*** TO BE DONE START ***/
-	if(sprintf(message, "%d", msg_no) < 0){
+	if(sprintf(message, "%d\n", msg_no) < 0){
 		perror("Errore nella sprintf in do_ping. ");
 	};
 
@@ -47,7 +47,7 @@ double do_ping(size_t msg_size, int msg_no, char message[msg_size], int tcp_sock
     /*** Store the current time in send_time ***/
 /*** TO BE DONE START ***/
     
-	if(clock_gettime(tcp_socket, &send_time) < 0){
+	if(clock_gettime(CLOCK_TYPE, &send_time) < 0){
 		perror("Errore nella clock_gettime in do_ping. ");
 	};
 
@@ -55,7 +55,7 @@ double do_ping(size_t msg_size, int msg_no, char message[msg_size], int tcp_sock
 
     /*** Send the message through the socket (blocking)  ***/
 /*** TO BE DONE START ***/
-	if(sent_bytes = blocking_write_all(tcp_socket, message, msg_size) < 0){
+	if((sent_bytes = blocking_write_all(tcp_socket, message, msg_size)) != msg_size){
 		perror("Errore nell'invio del buffer in do_ping. ");
 	};
 
@@ -72,7 +72,7 @@ double do_ping(size_t msg_size, int msg_no, char message[msg_size], int tcp_sock
     /*** Store the current time in recv_time ***/
 /*** TO BE DONE START ***/
 
-	if(clock_gettime(CLOCK_REALTIME, &recv_time) != 0){
+	if(clock_gettime(CLOCK_TYPE, &recv_time) != 0){
 		perror("Errore nel clock_gettime in do_ping. (recv). ");
 	};
 
@@ -117,7 +117,7 @@ int main(int argc, char **argv)
 	gai_hints.ai_family = AF_INET;    /* Allow IPv4 or IPv6 */
     gai_hints.ai_socktype = SOCK_STREAM; /* Datagram socket */
 	//gai_hints.ai_flags = 0;
-	gai_hints.ai_protocol = 0;          /* Any protocol */
+	//gai_hints.ai_protocol = 0;          /* Any protocol */
 
 
 /*** TO BE DONE END ***/
