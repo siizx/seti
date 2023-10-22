@@ -47,7 +47,7 @@ double do_ping(size_t msg_size, int msg_no, char message[msg_size], int tcp_sock
     /*** Store the current time in send_time ***/
 /*** TO BE DONE START ***/
     
-	if(clock_gettime(CLOCK_REALTIME, &send_time) < 0){
+	if(clock_gettime(tcp_socket, &send_time) < 0){
 		perror("Errore nella clock_gettime in do_ping. ");
 	};
 
@@ -55,7 +55,7 @@ double do_ping(size_t msg_size, int msg_no, char message[msg_size], int tcp_sock
 
     /*** Send the message through the socket (blocking)  ***/
 /*** TO BE DONE START ***/
-	if(sent_bytes = send(SOCK_STREAM, message, msg_size, 0) < 0){
+	if(sent_bytes = blocking_write_all(tcp_socket, message, msg_size) < 0){
 		perror("Errore nell'invio del buffer in do_ping. ");
 	};
 
@@ -114,12 +114,21 @@ int main(int argc, char **argv)
     /*** Initialize hints in order to specify socket options ***/
 	memset(&gai_hints, 0, sizeof gai_hints);
 /*** TO BE DONE START ***/
+	gai_hints.ai_family = AF_INET;    /* Allow IPv4 or IPv6 */
+    gai_hints.ai_socktype = SOCK_STREAM; /* Datagram socket */
+	//gai_hints.ai_flags = 0;
+	gai_hints.ai_protocol = 0;          /* Any protocol */
 
 
 /*** TO BE DONE END ***/
 
     /*** call getaddrinfo() in order to get Pong Server address in binary form ***/
 /*** TO BE DONE START ***/
+	gai_rv = getaddrinfo(argv[1], argv[2], &gai_hints, &server_addrinfo);
+    if (gai_rv != 0) {
+        fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(gai_rv));
+        exit(EXIT_FAILURE);
+    }
 
 
 /*** TO BE DONE END ***/
@@ -130,6 +139,12 @@ int main(int argc, char **argv)
 
     /*** create a new TCP socket and connect it with the server ***/
 /*** TO BE DONE START ***/
+
+	if((tcp_socket = socket(server_addrinfo->ai_family, server_addrinfo->ai_socktype, server_addrinfo->ai_protocol)) == -1)
+		fail_errno("bad_socket\n");
+
+	if(connect(tcp_socket, server_addrinfo->ai_addr, server_addrinfo->ai_addrlen) == -1)
+		fail_errno("failed to establish the 3-way handshake\n");
 
 
 /*** TO BE DONE END ***/
@@ -147,6 +162,11 @@ int main(int argc, char **argv)
     /*** Write the request on socket ***/
 /*** TO BE DONE START ***/
 
+	if(write(tcp_socket, request, strlen(request)) < 0){
+		fprintf(stderr, "Error writing request on socket.");
+        exit(EXIT_FAILURE);
+	}
+
 
 /*** TO BE DONE END ***/
 
@@ -157,7 +177,7 @@ int main(int argc, char **argv)
 
     /*** Check if the answer is OK, and fail if it is not ***/
 /*** TO BE DONE START ***/
-
+	if(strcmp(answer, "OK\n")) fail("Server said no");
 
 /*** TO BE DONE END ***/
 
