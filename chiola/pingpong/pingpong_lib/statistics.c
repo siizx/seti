@@ -31,6 +31,25 @@ double timespec_delta2milliseconds(struct timespec *last,
 
 /*** TO BE DONE START ***/
 
+const long mill = 1000000;
+const double thous = 1000;
+
+// converto i dati da nano secondi a secondi in double.
+double lastms_nano = ((double)(last->tv_nsec))/mill;
+double prevms_nano = ((double)(previous->tv_nsec))/mill;
+
+// converto i secondi in ms e in double.
+double lastms_sec = ((double)(last->tv_sec))*thous;
+double prev_sec = ((double)(previous->tv_sec))*thous;
+
+// calcolo le differenze e poi le sommo:
+double diff_nano = (lastms_nano - prevms_nano);
+double diff_sec = (lastms_sec - prev_sec);
+double diff = diff_nano + diff_sec;
+
+if(diff < 0) return diff*(-1);
+
+return diff;
 
 /*** TO BE DONE END ***/
 

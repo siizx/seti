@@ -38,26 +38,24 @@ double do_ping(size_t msg_size, int msg_no, char message[msg_size], int tcp_sock
 
     /*** write msg_no at the beginning of the message buffer ***/
 /*** TO BE DONE START ***/
-	if(sprintf(message, "%d\n", msg_no) < 0){
-		perror("Errore nella sprintf in do_ping. ");
-	};
+	if(sprintf(message, "%d\n", msg_no) < 0) // Converto msg_no in stringa e lo salvo in message.
+		fail_errno("Error in sprintf in do_ping.\n");
 
 /*** TO BE DONE END ***/
 
     /*** Store the current time in send_time ***/
 /*** TO BE DONE START ***/
     
-	if(clock_gettime(CLOCK_TYPE, &send_time) < 0){
-		perror("Errore nella clock_gettime in do_ping. ");
-	};
+	if(clock_gettime(CLOCK_TYPE, &send_time) < 0) // CLOCK_TYPE = MONOTONIC ~ Memorizzo l'ora corrente nella variabile 'send_time'.
+		fail_errno("Error in clock_gettime in do_ping.\n");
 
 /*** TO BE DONE END ***/
 
     /*** Send the message through the socket (blocking)  ***/
 /*** TO BE DONE START ***/
-	if((sent_bytes = blocking_write_all(tcp_socket, message, msg_size)) != msg_size){
-		perror("Errore nell'invio del buffer in do_ping. ");
-	};
+	if((sent_bytes = blocking_write_all(tcp_socket, message, msg_size)) != msg_size) // scrivo il messaggio (con size = msg_size) nel socket tcp_socket e memorizzo il numero di byte mandati.
+		fail_errno("Error sending buffer in do_ping.\n");
+	
 
 
 /*** TO BE DONE END ***/
@@ -66,15 +64,15 @@ double do_ping(size_t msg_size, int msg_no, char message[msg_size], int tcp_sock
 	for (offset = 0; (offset + (recv_bytes = recv(tcp_socket, rec_buffer + offset, sent_bytes - offset, MSG_WAITALL))) < msg_size; offset += recv_bytes) {
 		debug(" ... received %zd bytes back\n", recv_bytes);
 		if (recv_bytes < 0)
-			fail_errno("Error receiving data");
+			fail_errno("Error receiving data.\n");
 	}
 
     /*** Store the current time in recv_time ***/
 /*** TO BE DONE START ***/
 
-	if(clock_gettime(CLOCK_TYPE, &recv_time) != 0){
-		perror("Errore nel clock_gettime in do_ping. (recv). ");
-	};
+	if(clock_gettime(CLOCK_TYPE, &recv_time) != 0) // memorizzo l'ora di ricezione nella variabile recv_time.
+		fail_errno("Error calling clock_gettime in do_ping. (recv).\n");
+	
 
 /*** TO BE DONE END ***/
 
@@ -114,21 +112,20 @@ int main(int argc, char **argv)
     /*** Initialize hints in order to specify socket options ***/
 	memset(&gai_hints, 0, sizeof gai_hints);
 /*** TO BE DONE START ***/
-	gai_hints.ai_family = AF_INET;    /* Allow IPv4 or IPv6 */
-    gai_hints.ai_socktype = SOCK_STREAM; /* Datagram socket */
-	//gai_hints.ai_flags = 0;
-	//gai_hints.ai_protocol = 0;          /* Any protocol */
+	// Gli altri parametri hints non li tocco perche' sono gia stati inizializzati da memset, e vanno bene cosi'.
+	gai_hints.ai_family = AF_INET;    // IPv4
+    gai_hints.ai_socktype = SOCK_STREAM; // tipo di datagramma. 
 
 
 /*** TO BE DONE END ***/
 
     /*** call getaddrinfo() in order to get Pong Server address in binary form ***/
 /*** TO BE DONE START ***/
-	gai_rv = getaddrinfo(argv[1], argv[2], &gai_hints, &server_addrinfo);
-    if (gai_rv != 0) {
-        fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(gai_rv));
-        exit(EXIT_FAILURE);
-    }
+
+	//argv1 = indirizzo (seti.dibris...) argv2 = port ~ &gai_hints = getaddress settings. ~ &server_addrinfo = dove salvare i risultati della chiamata.
+	gai_rv = getaddrinfo(argv[1], argv[2], &gai_hints, &server_addrinfo); 
+    if (gai_rv != 0) // gui_rv e' il valore che e' stato restituito dalla getaddrinfo.
+        fail_errno("Error while getting address information for gai_rv.\n");
 
 
 /*** TO BE DONE END ***/
@@ -140,10 +137,12 @@ int main(int argc, char **argv)
     /*** create a new TCP socket and connect it with the server ***/
 /*** TO BE DONE START ***/
 
+	// socket crea il file descriptor di un nuovo socket (tcp_socket(int)), e lo popola con le informazioni passate nella funzione chiamata.
+	// ai_family = AF_INET ~ ai_socktype = SOCK_STREAM ~ ai_protocol = 0 (da memset).
 	if((tcp_socket = socket(server_addrinfo->ai_family, server_addrinfo->ai_socktype, server_addrinfo->ai_protocol)) == -1)
 		fail_errno("bad_socket\n");
 
-	if(connect(tcp_socket, server_addrinfo->ai_addr, server_addrinfo->ai_addrlen) == -1)
+	if(connect(tcp_socket, server_addrinfo->ai_addr, server_addrinfo->ai_addrlen) == -1) // qui ovviamente avviene la connessione.
 		fail_errno("failed to establish the 3-way handshake\n");
 
 
@@ -162,22 +161,22 @@ int main(int argc, char **argv)
     /*** Write the request on socket ***/
 /*** TO BE DONE START ***/
 
-	if(write(tcp_socket, request, strlen(request)) < 0){
-		fprintf(stderr, "Error writing request on socket.");
-        exit(EXIT_FAILURE);
-	}
+	// scrivo la stringa 'request' in tcp_socket
+	if(write(tcp_socket, request, strlen(request)) < 0)
+		fail_errno("Error writing request on socket.\n");
 
 
 /*** TO BE DONE END ***/
 
 	nr = read(tcp_socket, answer, sizeof(answer));
 	if (nr < 0)
-		fail_errno("TCP Ping could not receive answer from Pong server");
+		fail_errno("TCP Ping could not receive answer from Pong server\n");
 		
 
     /*** Check if the answer is OK, and fail if it is not ***/
 /*** TO BE DONE START ***/
-	if(strcmp(answer, "OK\n")) fail("Server said no");
+
+	if(strcmp(answer, "OK\n")) fail("Server said no\n"); // answer returns 0 when strings match.
 
 /*** TO BE DONE END ***/
 
