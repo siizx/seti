@@ -34,6 +34,11 @@ double timespec_delta2milliseconds(struct timespec *last,
 const long mill = 1000000;
 const double thous = 1000;
 
+// stampo queste variabili per curiosita'.
+// printf("~~~last = sec: %ld nsec: %ld.\n", last->tv_sec, last->tv_nsec);
+// printf("~~~previous = sec: %ld nsec: %ld.\n", previous->tv_sec, previous->tv_nsec);
+
+
 // converto i dati da nano secondi a secondi in double.
 double lastms_nano = ((double)(last->tv_nsec))/mill;
 double prevms_nano = ((double)(previous->tv_nsec))/mill;
@@ -47,9 +52,15 @@ double diff_nano = (lastms_nano - prevms_nano);
 double diff_sec = (lastms_sec - prev_sec);
 double diff = diff_nano + diff_sec;
 
-if(diff < 0) return diff*(-1);
+// questa non dovrebbe servire.
+//if(diff < 0) return diff*(-1);
 
 return diff;
+
+// codice di francesco:
+//long long sec = last->tv_sec - previous->tv_sec;
+//long long nsec = last->tv_nsec - previous->tv_nsec;
+//return (((double)sec*1000.0) + ((double)nsec/1000000.0));
 
 /*** TO BE DONE END ***/
 
