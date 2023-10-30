@@ -39,6 +39,8 @@ double do_ping(size_t msg_size, int msg_no, char message[msg_size], int ping_soc
     /*** write msg_no at the beginning of the message buffer ***/
 /*** TO BE DONE START ***/
 
+	if(sprintf(message,"%d\n",msg_no) < 0)
+		fail_errno("Errore nella sprintf dell'udp.");
 
 /*** TO BE DONE END ***/
 
@@ -47,24 +49,34 @@ double do_ping(size_t msg_size, int msg_no, char message[msg_size], int ping_soc
 	/*** Store the current time in send_time ***/
 /*** TO BE DONE START ***/
 
+	if(clock_gettime(CLOCK_TYPE, &send_time) != 0)
+		fail_errno("Errore nella clock_gettime dell'udp.");
 
 /*** TO BE DONE END ***/
 
 	/*** Send the message through the socket (non blocking mode) ***/
 /*** TO BE DONE START ***/
 
+	sent_bytes = nonblocking_write_all(ping_socket, message, msg_size);
+	if(sent_bytes < 0)
+		fail_errno("Errore nella non-blocking write della udp.");
 
 /*** TO BE DONE END ***/
 
 	/*** Receive answer through the socket (non blocking mode, with timeout) ***/
 /*** TO BE DONE START ***/
-
+	//recv_bytes = recv(ping_socket, answer_buffer, sizeof(answer_buffer), 0);
+	
+	recv_bytes = recvfrom(ping_socket, answer_buffer, msg_size, MSG_DONTWAIT,NULL, NULL);
+	recv_errno = errno;
 
 /*** TO BE DONE END ***/
 
 	/*** Store the current time in recv_time ***/
 /*** TO BE DONE START ***/
 
+	if(clock_gettime(CLOCK_TYPE, &recv_time) == -1)
+		fail_errno("Errore nella clock_gettime dell'udp.");
 
 /*** TO BE DONE END ***/
 
@@ -112,22 +124,27 @@ int prepare_udp_socket(char *pong_addr, char *pong_port)
     /*** Specify the UDP sockets' options ***/
 	memset(&gai_hints, 0, sizeof gai_hints);
 /*** TO BE DONE START ***/
-
+	gai_hints.ai_family = AF_INET;
+	gai_hints.ai_socktype = SOCK_DGRAM;
+	gai_hints.ai_protocol = IPPROTO_UDP;
+	gai_hints.ai_flags = AI_PASSIVE;
 
 /*** TO BE DONE END ***/
 
 	if ((ping_socket = socket(gai_hints.ai_family, gai_hints.ai_socktype, gai_hints.ai_protocol)) == -1)
-		fail_errno("UDP Ping could not get socket");
+		fail_errno("Errore nella chiamata di funzione 'socket' dell'udp.");
 
     /*** change ping_socket behavior to NONBLOCKing using fcntl() ***/
 /*** TO BE DONE START ***/
-	
-
+	if(fcntl(ping_socket,F_SETFL,O_NONBLOCK) == -1)
+		fail_errno("Errore nella chiamata di 'fcntl' dell'udp.");
 /*** TO BE DONE END ***/
 
     /*** call getaddrinfo() in order to get Pong Server address in binary form ***/
 /*** TO BE DONE START ***/
 
+	if(getaddrinfo(pong_addr, pong_port, &gai_hints, &pong_addrinfo) != 0)
+		fail_errno("Errore nella getaddrinfo dell'udp.");
 
 /*** TO BE DONE END ***/
 
@@ -146,6 +163,8 @@ int prepare_udp_socket(char *pong_addr, char *pong_port)
     /*** connect the ping_socket UDP socket with the server ***/
 /*** TO BE DONE START ***/
 
+	if(connect(ping_socket, pong_addrinfo->ai_addr, pong_addrinfo->ai_addrlen) == -1)
+		fail_errno("Errore nella connect dell'udp.");
 
 /*** TO BE DONE END ***/
 
@@ -182,13 +201,17 @@ int main(int argc, char *argv[])
     /*** Specify TCP socket options ***/
 	memset(&gai_hints, 0, sizeof gai_hints);
 /*** TO BE DONE START ***/
-
+	gai_hints.ai_family = AF_INET;
+	gai_hints.ai_socktype = SOCK_STREAM;
+	gai_hints.ai_protocol = IPPROTO_TCP;
+	gai_hints.ai_flags = AI_PASSIVE; // questo serve?
 
 /*** TO BE DONE END ***/
 
     /*** call getaddrinfo() in order to get Pong Server address in binary form ***/
 /*** TO BE DONE START ***/
-
+	if(getaddrinfo(argv[1], argv[2], &gai_hints, &server_addrinfo) != 0)
+		fail_errno("Errore nella getaddrinfo nel main dell'udp.");
 
 /*** TO BE DONE END ***/
 
@@ -198,7 +221,11 @@ int main(int argc, char *argv[])
 
     /*** create a new TCP socket and connect it with the server ***/
 /*** TO BE DONE START ***/
-
+	ask_socket = socket(server_addrinfo->ai_family, server_addrinfo->ai_socktype, server_addrinfo->ai_protocol);
+	if(ask_socket == -1)
+		fail_errno("Errore nella socket del main dell'udp.");
+	if(connect(ask_socket, server_addrinfo->ai_addr, server_addrinfo->ai_addrlen) == -1)
+		fail_errno("Errore nella connect del main dell'udp.");
 
 /*** TO BE DONE END ***/
 
@@ -208,7 +235,8 @@ int main(int argc, char *argv[])
 
     /*** Write the request on the TCP socket ***/
 /** TO BE DONE START ***/
-
+	if(blocking_write_all(ask_socket, request, strlen(request)) < 0)
+		fail_errno("Errore nella blocking write del main dell'udp.");
 
 /*** TO BE DONE END ***/
 
@@ -221,7 +249,8 @@ int main(int argc, char *argv[])
 
     /*** Check if the answer is OK, and fail if it is not ***/
 /*** TO BE DONE START ***/
-
+	if(strncmp(answer, "OK", 2) != 0)
+		fail("Errore: answer non è OK.");
 
 /*** TO BE DONE END ***/
 

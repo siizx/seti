@@ -53,10 +53,8 @@ double do_ping(size_t msg_size, int msg_no, char message[msg_size], int tcp_sock
 
     /*** Send the message through the socket (blocking)  ***/
 /*** TO BE DONE START ***/
-	if((sent_bytes = blocking_write_all(tcp_socket, message, msg_size)) != msg_size) // scrivo il messaggio (con size = msg_size) nel socket tcp_socket e memorizzo il numero di byte mandati.
+	if((sent_bytes = blocking_write_all(tcp_socket, message, msg_size)) != (ssize_t)msg_size) // scrivo il messaggio (con size = msg_size) nel socket tcp_socket e memorizzo il numero di byte mandati.
 		fail_errno("Error sending buffer in do_ping.\n");
-	
-
 
 /*** TO BE DONE END ***/
 
