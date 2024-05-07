@@ -48,7 +48,7 @@ $(BIN_DIR)/udp_ping.o: pingpong_lib/pingpong.h udp_ping/udp_ping.c | $(BIN_DIR)
 $(TCP_PING): $(TCP_PING_OBJS) $(PINGPONG_LIB) | $(BIN_DIR)
 	$(CC) -o $@ $(TCP_PING_OBJS) $(LDFLAGS)
 $(BIN_DIR)/tcp_ping.o: pingpong_lib/pingpong.h tcp_ping/tcp_ping.c | $(BIN_DIR)
-	$(CC) $(CFLAGS) -c -o $@ tcp_ping/tcp_ping.c
+	$(CC) $(CFLAGS) -c -o $@ tcp_ping/tcp_ping.c 
 
 # Directories
 $(BIN_DIR):

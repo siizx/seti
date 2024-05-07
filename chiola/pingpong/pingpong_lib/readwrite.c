@@ -21,20 +21,24 @@
 #include <stdlib.h>
 #include "pingpong.h"
 
-/* read_all and blocking_write_all, inspired by readn and writen of the 
+/* read_all and blocking_write_all, inspired by readn and writen of the
    book "Advanced Programming in the UNIX Environment" */
 
 ssize_t read_all(int fd, void *ptr, size_t n)
 {
 	size_t n_left = n;
-	while (n_left > 0) {
+	while (n_left > 0)
+	{
 		ssize_t n_read = read(fd, ptr, n_left);
-		if (n_read < 0) {
+		if (n_read < 0)
+		{
 			if (n_left == n)
 				return -1; /* nothing has been read */
 			else
 				break; /* we have read something */
-		} else if (n_read == 0) {
+		}
+		else if (n_read == 0)
+		{
 			break; /* EOF */
 		}
 		n_left -= n_read;
@@ -47,15 +51,19 @@ ssize_t read_all(int fd, void *ptr, size_t n)
 ssize_t blocking_write_all(int fd, const void *ptr, size_t n)
 {
 	size_t n_left = n;
-	while (n_left > 0) {
+	while (n_left > 0)
+	{
 		ssize_t n_written = write(fd, ptr, n_left);
-		if (n_written < 0) {
+		if (n_written < 0)
+		{
 			if (n_left == n)
 				return -1; /* nothing has been written */
 			else
 				break; /* we have written something */
-		} else if (n_written == 0) {
-                        continue;
+		}
+		else if (n_written == 0)
+		{
+			continue;
 		}
 		n_left -= n_written;
 		ptr += n_written;
@@ -67,27 +75,33 @@ ssize_t blocking_write_all(int fd, const void *ptr, size_t n)
 ssize_t nonblocking_write_all(int fd, const void *ptr, size_t n)
 {
 	size_t n_left = n;
-	while (n_left > 0) {
+	while (n_left > 0)
+	{
 		ssize_t n_written = write(fd, ptr, n_left);
-		if (n_written < 0) {
+		if (n_written < 0)
+		{
 
-/*** TO BE DONE START ***/
-
-			if (errno == EAGAIN || errno == EWOULDBLOCK || errno == EINTR) {
+			/*** TO BE DONE START ***/
+			if (errno == EAGAIN || errno == EWOULDBLOCK || errno == EINTR)
+			{
 				printf(" ... write would block\n");
 				continue;
-			}else {
+			}
+			else
+			{
 				return -1;
-				}
+			}
 
-/*** TO BE DONE END ***/
+			/*** TO BE DONE END ***/
 
 			if (n_left == n)
 				return -1; /* nothing has been written */
 			else
 				break; /* we have written something */
-		} else if (n_written == 0) {
-                        continue;
+		}
+		else if (n_written == 0)
+		{
+			continue;
 		}
 		n_left -= n_written;
 		ptr += n_written;
@@ -95,4 +109,3 @@ ssize_t nonblocking_write_all(int fd, const void *ptr, size_t n)
 	assert(n - n_left >= 0);
 	return n - n_left;
 }
-
