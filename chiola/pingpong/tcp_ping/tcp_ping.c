@@ -20,6 +20,8 @@
  */
 
 #include "pingpong.h"
+#include <stdbool.h> // cancellare
+bool debug = true; // mio debug
 
 /*
  * This function sends and wait for a reply on a socket.
@@ -38,6 +40,7 @@ double do_ping(size_t msg_size, int msg_no, char message[msg_size], int tcp_sock
 
 	/*** write msg_no at the beginning of the message buffer ***/
 	/*** TO BE DONE START ***/
+	if(debug) printf("~~~ do_ping 1111");
 
 	if (sprintf(message, "%d\n", msg_no) < 0)
 	{
@@ -98,6 +101,8 @@ double do_ping(size_t msg_size, int msg_no, char message[msg_size], int tcp_sock
 		   &(send_time.tv_sec), &(send_time.tv_nsec));
 	RTT_ms -= timespec_delta2milliseconds(&send_time, &recv_time);
 	return RTT_ms;
+	if(debug) printf("~~~ do_ping 2222");
+
 }
 
 int main(int argc, char **argv)
@@ -189,14 +194,14 @@ int main(int argc, char **argv)
 	if (strncmp(answer, "OK", 2) != 0)
 	{
 		fail("strncmp");
-	};
+	}
 
 	/*** TO BE DONE END ***/
-
 	/*** else ***/
 	printf(" ... Pong server agreed :-)\n");
 
 	{
+
 		double ping_times[norep];
 		struct timespec zero, resolution;
 		char message[msgsz];
