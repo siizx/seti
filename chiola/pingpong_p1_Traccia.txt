@@ -1,0 +1,173 @@
+
+Laboratorio Ping-pong, prima parte: tcp_ping
+
+
+
+Qualche informazione sui socket
+Strutture dati e funzioni di conversione
+Client Ping TCP
+Server Pong
+Sorgenti da completare
+
+NOTA IMPORTANTE: LEGGETE FINO AL FONDO!!!
+
+
+Qualche informazione sui socket
+I socket offrono un meccanismo indipendente dal protocollo per creare una comunicazione tra processi. Possono essere:
+
+orientati alla connessione (connection based) quando viene stabilita una connessione tra mittente e destinatario prima di cominciare a comunicare;
+non orientati alla connessione (connectionless) quando i dati sono incapsulati in pacchetti indipendenti tra loro e si può inviare un singolo datagramma a qualsiasi destinatario senza alcuna fase preliminare di negoziazione della connessione;
+
+a flusso (stream based) quando i dati sono inviati in un flusso continuo di byte a priori illimitato;
+a pacchetto (packet based) quando ci sono dei confini prestabiliti tra pacchetti successivi, noti sia al mittente che al destinatario;
+
+affidabili (reliable) quando i messaggi non si possono perdere, duplicare, corrompere, arrivare fuori ordine, ecc. senza che mittente e destinatario se ne accorgano;
+inaffidabili (unreliable) quando i messaggi si possono perdere e/o arrivare fuori ordine senza che mittente e destinatario se ne accorgano.
+
+I socket sono caratterizzati dal loro dominio, tipo e protocollo di trasporto. Domini comuni sono:
+
+AF_UNIX: il formato degli indirizzi è un pathname UNIX (si usano per la comunicazione tra processi sulla stessa macchina).
+AF_INET: il formato degli indirizzi è costituito da indirizzo dell'host e numero di porta (si usano per la comunicazione sulla rete Internet supportata da IPv4).
+AF_INET6: il formato degli indirizzi è costituito da indirizzo dell'host in formato IPv6 e numero di porta.
+I socket orientati alla connessione richiedono una distinzione tra chi inzia la connessione e chi attende e la accetta. I socket non orientati alla connessione, invece, sono perfettamente simmetrici.
+
+In questa esercitazione usiamo socket orientati alla connessione (cioè socket TCP). Con questi socket i processi non sono simmetrici: un processo iniziatore (di solito chiamato "client"), per potersi connettere ad un processo in attesa di connessioni (di solito chiamato "server"), deve conoscerne l'indirizzo. Questo non è vero per il server che, in genere, non sa neppure dell'esistenza dei vari processi client prima di essere contattato da questi. Una volta stabilita la connessione, entrambi i processi possono spedire e ricevere informazioni in modalità full-duplex.
+
+Le system call per stabilire una connessione tra processi sono basate sulle primitive di base per la gestione dei socket.
+
+Lato "client", i passi per stabilire una connessione possono essere schematizzati ad alto livello come segue:
+
+Si crea un socket con la system call socket().
+Si connette il socket all'indirizzo e porta del server (utilizzando implicitamente una porta locale assegnata automaticamente dal proprio sistema operativo) usando la system call connect().
+Si spediscono e ricevono dati. Nel caso di socket orientati alla connessione generalmente si usano le system call send() e recv(). Si possono anche usare le system call write() e read().
+Si chiude il socket con le system call shutdown() (solo per TCP) e close().
+
+Lato "server", i passi per stabilire una connessione possono essere schematizzati ad alto livello come segue:
+
+
+Si crea un socket con la system call socket().
+Si associa il socket a un indirizzo e a una porta predefinita usando la system call bind().
+Si notifica al sistema operativo la disponibilità a ricevere richieste di connessione con la system call listen().
+Si accetta la prossima richiesta di connessione proveniente da un client con la system call accept() (la quale può restituire indirizzo e porta del client che si vuole connettere). La system call accept() in realtà crea automaticamente un nuovo socket sul server, connesso col client, mentre il socket originario, usato per la negoziazione della connessione, rimane nello stato listening, e può essere usato per accettare altre richieste di connessione (tipicamente da altri client) sulla stessa porta del server. Se e quando il server decide di non accettare altre connessioni su quella porta, può chiudere il socket principale messo in listening mediante la system call close().
+Si spediscono e ricevono dati usando il socket ausiliario creato automaticamente dalla accept().
+Si chiude il socket ausiliario di comunicazione mediante le system call shutdown() e close().
+Strutture dati e funzioni di conversione
+La struttura dati addrinfo è definita nel file di sistema netdb.h e può essere usata facendo un include di questo file. Serve alle funzioni per la gestione dei socket per sapere quale protocollo a livello trasporto usare (TCP o UDP) quale protocollo a livello Network usare (IPv4 o IPv6), su quale indirizzo IP connettersi, su quale porta. La funzione getaddrinfo() si occupa di parte della sua inizializzazione.
+
+Nota: getaddrinfo() potrebbe restituire una lista di strutture addrinfo (come si può vedere dal puntatore *ai_next) ma nel nostro caso restituirà una lista con un solo nodo. Le strutture dati gestite mediante getaddrinfo(), quando non servono più, devono essere rilasciate con la funzione freeaddrinfo().
+
+
+
+struct addrinfo {
+int ai_flags;
+int ai_family; // AF_INET, AF_INET6, AF_UNSPEC
+int ai_socktype; // SOCK_STREAM, SOCK_DGRAM
+int ai_protocol; // 0 per "any"
+size_t ai_addrlen; // size of ai_addr in bytes
+struct sockaddr *ai_addr;
+char *ai_canonname; // canonical name
+struct addrinfo *ai_next; // this struct can form a linked list
+};
+
+struct sockaddr {
+unsigned short sa_family; // address family, AF_xxx
+char sa_data[14]; // 14 bytes of protocol address
+};
+
+
+
+Poiché i socket devono fornire un'interfaccia per diverse famiglie di protocolli (IPv4,IPv6 e Unix), esistono in realtà più strutture per memorizzare le informazioni sugli indirizzi. Oltre alla struttura generica sockaddr, esistono anche delle strutture specifiche per le diverse famiglie di indirizzi.
+
+
+
+// IPv4 AF_INET sockets:
+struct sockaddr_in {
+short sin_family; // e.g. AF_INET
+unsigned short sin_port; // e.g. htons(3490)
+struct in_addr sin_addr; // see struct in_addr,below
+char sin_zero[8]; // zero this if you want to
+};
+
+struct in_addr {
+unsigned long s_addr; // load with inet_pton()
+};
+
+
+
+// IPv6 AF_INET6 sockets:
+struct sockaddr_in6 {
+u_int16_t sin6_family; // e.g. AF_INET6
+u_int16_t sin6_port; // port number, Network Byte Order
+u_int32_t sin6_flowinfo; // IPv6 flow information
+struct in6_addr sin6_addr; // IPv6 address
+u_int32_t sin6_scope_id; // Scope ID
+};
+
+struct in6_addr {
+unsigned char s6_addr[16]; // load with inet_pton()
+};
+
+
+
+// UNIX AF_UNIX sockets:
+struct sockaddr_un {
+sa_family_t sun_family; // e.g. AF_UNIX
+char sun_path[126]; // pathname
+};
+
+
+
+
+
+In generale le funzioni di libreria dei socket hanno tra i loro argomenti il puntatore alla struttura generica sockaddr e sono necessari dei cast a seconda della famiglia di indirizzi che si stanno usando. Per esempio, la funzione getaddrinfo() usa strutture di tipo addrinfo che contengono i dati sull'indirizzo memorizzati nella struttura sockaddr nel formato a 14 byte. Per conoscere l'indirizzo IPv4 e il numero porta si può usare l'operatore di casting come segue:
+
+struct sockaddr_in *ipv4 = (struct sockaddr_in *)serverAddr->ai_addr;
+
+per poi accedere ai campi sin_port e sin_addr della struttura sockaddr_in (facendo attenzione ai problemi di conversione descritti più avanti).
+
+
+Per usare queste strutture dati bisogna sempre inizializzarle a zero prima di riempire i vari campi. Per fare questa operazione si può usare la funzione memset(). Ad esempio:
+
+struct addrinfo hints;
+memset(&hints, 0, sizeof hints);
+
+
+
+Per garantire l'interoperabilità tra hardware diverso, ci sono anche gli aspetti di ordinamento dei byte. Gli indirizzi IP e i numeri di porta devono essere memorizzati nelle strutture dati passate alle API secondo l'ordine dei byte stabilito per la rete (network byte order). Quindi, prima di essere assegnati, vanno convertiti nella forma corretta, usando le funzioni:
+
+htons() // Host ( h ) to Network ( n ) Short
+htonl () // Host ( h ) to Network ( n ) Long
+E, ovviamente, esistono le funzioni che fanno la conversione inversa
+
+ntohs() // Newtwork ( n ) to Host ( h ) Short
+ntohl () // Newtwork ( n ) to Host ( h ) Long
+Infine, esistono anche funzioni per la conversione degli indirizzi IP dalla forma di stringa di caratteri ASCII (per esempio 192.161.25.9) al formato 32-bit network byte order e viceversa:
+
+inet_pton() // da stringa di caratteri ASCII (p=presentation) a 32-bit network ( n ) byte order
+inet_ntop() // da 32-bit network ( n ) byte order a stringa di caratteri ASCII ( p )
+Per le informazioni dettagliate sulle funzioni per la gestione dei socket in C vi rimandiamo ai manuali online. Un sito piuttosto dettagliato è Beej's Guide to Network Programming.
+
+Client Ping TCP
+Nella prima esercitazione si deve realizzare un processo client Ping TCP che si connette ad un server Pong in ascolto su una porta alta (>= 1024).
+
+Troverete dei sorgenti INCOMPLETI nell'archivio TGZ su aulaweb; dovrete riempire le parti marcate con "TO BE DONE" per ottenere client/server funzionanti. Anche se l'archivio contiene già la parte UDP, per questa volta considerate solo il TCP. Oltre al file "tcp_ping/tcp_ping.c" occorre completare anche il file "pingpong_lib/statistics.c" per produrre i risultati corretti della statistica dei Round-Trip-Time.
+
+Il processo Ping si connette al server Pong e invia un messaggio di richiesta contenente la stringa di caratteri "TCP " seguita dalla lunghezza dei messaggi (in byte) e dal numero di ripetizioni; la stringa è terminata dal carattere di terminazione di linea '\n'.
+
+Es. "TCP 64 151\n"
+
+Il server Pong, ricevuta e riconosciuta la stringa di richiesta, risponde "OK\n", dopo di che agisce come Pong secondo le modalità concordate.
+
+In caso di errore, il server Pong risponde invece "ERROR\n" e chiude la connessione.
+
+Dopo aver ricevuto la risposta OK, Ping invia il primo messaggio dati: una sequenza lunga quanto specificato nel messaggio di richiesta, formata da valori zero, che deve contenere all'inizio la stringa di caratteri "1\n". Pong si limita a restituirglielo il più rapidamente possibile. Ping calcola il RTT necessario perché il messaggio compia un percorso di "andata e ritorno", poi invia il secondo messaggio dati che inizia con la stringa "2\n", ecc., fino a completare il numero di tentativi concordato.
+
+
+
+
+Server Pong
+Per testare il vostro client/server, prima di averli completati entrambi e/o per vedere cosa ci si aspetta in output, potete usare i binari precompilati disponibili su aulaweb.
+
+Gli eseguibili presenti nella directory bin il cui nome inizia con "gc_"  sono stati compilati su piattaforma Ubuntu 20.04 a 64 bit.
+
+Per il debugging dei client (tcp_ping adesso e udp_ping successivamente) puo` essere conveniente lanciare il "pong-server" sulla stessa macchina, specificando una porta alta (>1023)  libera (dovrebbe andar bene la porta 1491), e specificando come indirizzo "localhost".  Alternativamente, potete usare il pong-server che risponde alla porta 1491 dell'host seti.dibris.unige.it (IPv4: 130.251.61.30)

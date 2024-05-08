@@ -1,7 +1,7 @@
 /*
  * statistics.c: funzioni ausiliarie per il ping-pong
  *
- * versione 9.0 
+ * versione 9.0
  *
  * Programma sviluppato a supporto del laboratorio di
  * Sistemi di Elaborazione e Trasmissione del corso di laurea
@@ -23,47 +23,24 @@
 #include "pingpong.h"
 
 double timespec_delta2milliseconds(struct timespec *last,
-				   struct timespec *previous)
+								   struct timespec *previous)
 {
-/*** This function computes the difference (last - previous)
- *** and returns the result expressed in milliseconds as a double
- ***/
+	/*** This function computes the difference (last - previous)
+	 *** and returns the result expressed in milliseconds as a double
+	 ***/
 
-/*** TO BE DONE START ***/
+	/*** TO BE DONE START ***/
+	double sec_t2 = last->tv_sec;
+	double nsec_t2 = last->tv_nsec;
+	double sec_t1 = previous->tv_sec;
+	double nsec_t1 = previous->tv_nsec;
+	double mil = 1000000;
+	double thous = 1000;
 
-const long mill = 1000000;
-const double thous = 1000;
+	double delta = (sec_t2 * thous + nsec_t2 / mil) - (sec_t1 * thous + nsec_t1 / mil);
+	return delta;
 
-// stampo queste variabili per curiosita'.
-// printf("~~~last = sec: %ld nsec: %ld.\n", last->tv_sec, last->tv_nsec);
-// printf("~~~previous = sec: %ld nsec: %ld.\n", previous->tv_sec, previous->tv_nsec);
-
-
-// converto i dati da nano secondi a secondi in double.
-double lastms_nano = ((double)(last->tv_nsec))/mill;
-double prevms_nano = ((double)(previous->tv_nsec))/mill;
-
-// converto i secondi in ms e in double.
-double lastms_sec = ((double)(last->tv_sec))*thous;
-double prev_sec = ((double)(previous->tv_sec))*thous;
-
-// calcolo le differenze e poi le sommo:
-double diff_nano = (lastms_nano - prevms_nano);
-double diff_sec = (lastms_sec - prev_sec);
-double diff = diff_nano + diff_sec;
-
-// questa non dovrebbe servire.
-//if(diff < 0) return diff*(-1);
-
-return diff;
-
-// codice di francesco:
-//long long sec = last->tv_sec - previous->tv_sec;
-//long long nsec = last->tv_nsec - previous->tv_nsec;
-//return (((double)sec*1000.0) + ((double)nsec/1000000.0));
-
-/*** TO BE DONE END ***/
-
+	/*** TO BE DONE END ***/
 }
 
 int double_cmp(const void *p1, const void *p2)
@@ -77,8 +54,8 @@ int double_cmp(const void *p1, const void *p2)
 	return 0;
 }
 
-void print_statistics(FILE * outf, const char *name, int repeats,
-		      double rtt[repeats], int msg_sz, double resolution)
+void print_statistics(FILE *outf, const char *name, int repeats,
+					  double rtt[repeats], int msg_sz, double resolution)
 {
 	const int N_HISTOGRAM_ITEMS = 21;
 	int median = repeats / 2;
@@ -100,13 +77,15 @@ void print_statistics(FILE * outf, const char *name, int repeats,
 	debug(" h_max=%lg, h_incr=%lg\n", h_max, h_incr);
 	for (j = 0; j < N_HISTOGRAM_ITEMS; j++)
 		histogram[j] = 0;
-	for (i = 0, mean = var = ns = 0.0; i < repeats; i++) {
+	for (i = 0, mean = var = ns = 0.0; i < repeats; i++)
+	{
 		double v = rtt[i];
 		double delta = v - mean;
 		debug("     rtt[%d]=%lg\n", i, rtt[i]);
 		ns += 1.0;
 		mean += delta / ns;
-		if (ns > 1.5) {
+		if (ns > 1.5)
+		{
 			var += delta * (v - mean);
 		}
 		v -= h_min;
@@ -123,9 +102,8 @@ void print_statistics(FILE * outf, const char *name, int repeats,
 		fprintf(outf, "%lg %d\n", ns, histogram[j]);
 	fprintf(outf, "\n");
 	if (rtt[median] > 0.0)
-		fprintf(outf,"   median Throughput : %lg KB/s", 2.0*(double)(msg_sz)/rtt[median]);
+		fprintf(outf, "   median Throughput : %lg KB/s", 2.0 * (double)(msg_sz) / rtt[median]);
 	if (mean > 0.0)
 		fprintf(outf, "   overall Throughput : %lg KB/s", 2.0 * (double)(msg_sz) / mean);
 	fprintf(outf, "\n\n");
 }
-

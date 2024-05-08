@@ -1,0 +1,7 @@
+Ci sono quattro programmi vulnerabili (due presi da Nebula: https://exploit.education/nebula/)
+
+In ogni cartella eseguire "make clean && make" per compilare i programmi e settare i permessi corretti (alcuni devono essere di proprietà di root, con il bit set-userid settato)
+
+In tutti gli esempi, a parte read-a-secret, dovrete ottenere una shell da root, partendo da un utente qualsiasi, *senza* modificare i programmi.
+
+In read-a-secret, dovete modificare stealer.c in modo da poter leggere il contenuto di a-secret.
