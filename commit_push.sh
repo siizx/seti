@@ -17,7 +17,7 @@ fi
 echo "adding '.' ..."
 git add .
 echo "committing using the provided string..."
-git commit $commit_option $my_string
+git commit $commit_option "$my_string"
 echo "pushing to origin..."
 git push origin master
 echo "Done!"
