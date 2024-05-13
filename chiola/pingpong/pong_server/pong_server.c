@@ -319,7 +319,13 @@ int main(int argc, char **argv)
 	/*** call getaddrinfo() to setup port number and server address, ***
 	 *** create STREAM socket, bind() and listen()                   ***/
 	/*** TO BE DONE START ***/
-	if (getaddrinfo() != 0) // argomenti! + create stream socket!
+	char hostName[256];
+	if(gethostname(hostName, sizeof(hostName)) != 0){
+		int err = errno;
+		perror("Error while getting host name");
+		return err;
+	}
+	if (getaddrinfo(localhost,argv[1]) != 0) // argomenti! + create stream socket!
 	{
 		int err = errno;
 		perror("getaddrinfo() failed in pong server main:");

@@ -20,7 +20,7 @@
  */
 
 #include "pingpong.h"
-#include <stdbool.h> // cancellare
+#include <stdbool.h> // cancellare, l'ho aggiunto io.
 bool debug = true; // mio debug
 
 /*
