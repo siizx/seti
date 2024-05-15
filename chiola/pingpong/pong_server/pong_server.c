@@ -319,29 +319,41 @@ int main(int argc, char **argv)
 	/*** call getaddrinfo() to setup port number and server address, ***
 	 *** create STREAM socket, bind() and listen()                   ***/
 	/*** TO BE DONE START ***/
+
+	// gethostname():
 	char hostName[256];
 	if(gethostname(hostName, sizeof(hostName)) != 0){
 		int err = errno;
 		perror("Error while getting host name");
 		return err;
 	}
+	// getaddrinfo()
 	if (getaddrinfo(localhost,argv[1], gai_hints, server_addrinfo) != 0)
 	{
 		int err = errno;
 		perror("getaddrinfo() failed in pong server main:");
 		return err;
 	}
+	// creo il socket stream
 	server_socket = socket(server_addrinfo->ai_family, server_addrinfo->ai_socktype, server_addrinfo->ai_protocol);
 	if(server_socket == -1){
 	int err =  errno;
 	perror("socket() failed: ");
 	return err;
 	}
-	if(bind() == -1){
+	// bind()
+	if(bind(server_socket, server_addrinfo->ai_addr, server_addrinfo->ai_addrlen) == -1){
 		int err = errno;
 		perror("Failed bind(): ");
 		return err;
 	}
+	// listen()
+if(listen(server_socket,) == -1){
+	int err = errno;
+	perror("listen() failed");
+	return err;
+}
+
 
 	/*** TO BE DONE END ***/
 
