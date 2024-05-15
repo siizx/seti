@@ -325,10 +325,21 @@ int main(int argc, char **argv)
 		perror("Error while getting host name");
 		return err;
 	}
-	if (getaddrinfo(localhost,argv[1]) != 0) // argomenti! + create stream socket!
+	if (getaddrinfo(localhost,argv[1], gai_hints, server_addrinfo) != 0)
 	{
 		int err = errno;
 		perror("getaddrinfo() failed in pong server main:");
+		return err;
+	}
+	server_socket = socket(server_addrinfo->ai_family, server_addrinfo->ai_socktype, server_addrinfo->ai_protocol);
+	if(server_socket == -1){
+	int err =  errno;
+	perror("socket() failed: ");
+	return err;
+	}
+	if(bind() == -1){
+		int err = errno;
+		perror("Failed bind(): ");
 		return err;
 	}
 
