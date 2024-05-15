@@ -52,7 +52,11 @@ void tcp_pong(int message_no, size_t message_size, FILE *in_stream, int out_sock
 
 		/*** get time-stamp time2 from the clock ***/
 		/*** TO BE DONE START ***/
-
+		if(clock_gettime(CLOCK_TYPE, &time2) == -1){
+			int err = errno;
+			perror("clock_gettime() failed: "
+			return err;
+		}
 		/*** TO BE DONE END ***/
 
 		if (sscanf(buffer, "%d\n", &seq) != 1)
@@ -63,7 +67,11 @@ void tcp_pong(int message_no, size_t message_size, FILE *in_stream, int out_sock
 
 		/*** get time-stamp time3 from the clock ***/
 		/*** TO BE DONE START ***/
-
+		if(clock_gettime(CLOCK_TYPE, &time3) == -1){
+			int err = errno;
+			perror("clock_gettime() failed: ");
+			return err;
+		}
 		/*** TO BE DONE END ***/
 
 		sprintf(buffer, "%ld %ld, %ld %ld\n", (long)time2.tv_sec, time2.tv_nsec,
@@ -91,6 +99,12 @@ void udp_pong(int dgrams_no, int dgram_sz, int pong_socket)
 
 		/*** get time-stamp time2 from the clock ***/
 		/*** TO BE DONE START ***/
+
+		if(clock_gettime(CLOCK_TYPE, &time2) == -1){
+			int err = errno;
+			perror("clock_gettime() failed: "
+			return err;
+		}
 
 		/*** TO BE DONE END ***/
 
@@ -128,6 +142,12 @@ void udp_pong(int dgrams_no, int dgram_sz, int pong_socket)
 
 		/*** get time-stamp time3 from the clock ***/
 		/*** TO BE DONE START ***/
+
+		if(clock_gettime(CLOCK_TYPE, &time3) == -1){
+			int err = errno;
+			perror("clock_gettime() failed: ");
+			return err;
+		}
 
 		/*** TO BE DONE END ***/
 
