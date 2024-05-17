@@ -184,6 +184,14 @@ int open_udp_socket(int *pong_port)
 
 		/*** create DGRAM socket, call getaddrinfo() to set port number, and bind() ***/
 		/*** TO BE DONE START ***/
+	udp_socket = socket(gai_hints->ai_family, gai_hints->ai_socktype, gain_hints->ai_protocol);
+	if(udp_socket == -1)
+		fail_errno("Flailed socket() UDP: ");
+	
+	// get addrinfo()
+	
+	getaddrinfo()
+
 
 		/*** TO BE DONE END ***/
 
@@ -348,7 +356,7 @@ int main(int argc, char **argv)
 		return err;
 	}
 	// getaddrinfo()
-	if (getaddrinfo(localhost,argv[1], gai_hints, server_addrinfo) != 0)
+	if (getaddrinfo(hostName,argv[1], gai_hints, server_addrinfo) != 0)
 	{
 		int err = errno;
 		perror("getaddrinfo() failed in pong server main:");
