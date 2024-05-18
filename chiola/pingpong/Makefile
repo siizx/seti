@@ -5,8 +5,17 @@ CFLAGS = -Ipingpong_lib
 BIN_DIR = bin
 DATA_DIR = data
 
+# test - sono su arm o su x64?
+ARCH := $(shell uname -m)
+ifeq ($(ARCH),x86_64)
+    LDFLAGS = -L$(BIN_DIR) -lpingpong -lrt
+else ifeq ($(ARCH),aarch64)
+    LDFLAGS = -L$(BIN_DIR) -lpingpong
+endif
+
+
 # per compilare su MacOs cancellare "-lrt" dalla riga sottostante. 
-LDFLAGS = -L$(BIN_DIR) -lpingpong -lrt
+# LDFLAGS = -L$(BIN_DIR) -lpingpong -lrt
 PINGPONG_LIB=$(BIN_DIR)/libpingpong.a
 PONG = $(BIN_DIR)/pong_server
 UDP_PING = $(BIN_DIR)/udp_ping

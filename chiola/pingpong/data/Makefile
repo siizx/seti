@@ -1,4 +1,5 @@
-PINGPONGADDR=seti.dibris.unige.it
+#PINGPONGADDR=seti.dibris.unige.it
+PINGPONGADDR=localhost
 PINGPONGPORT=1491
 TCP_EXE=../bin/tcp_ping
 UDP_EXE=../bin/udp_ping
