@@ -87,10 +87,6 @@ ssize_t nonblocking_write_all(int fd, const void *ptr, size_t n)
 				printf(" ... write would block\n");
 				continue;
 			}
-			else
-			{
-				return -1;
-			}
 
 			/*** TO BE DONE END ***/
 

@@ -5,7 +5,8 @@ CFLAGS = -Ipingpong_lib
 BIN_DIR = bin
 DATA_DIR = data
 
-LDFLAGS = -L$(BIN_DIR) -lpingpong
+# per compilare su MacOs cancellare "-lrt" dalla riga sottostante. 
+LDFLAGS = -L$(BIN_DIR) -lpingpong -lrt
 PINGPONG_LIB=$(BIN_DIR)/libpingpong.a
 PONG = $(BIN_DIR)/pong_server
 UDP_PING = $(BIN_DIR)/udp_ping

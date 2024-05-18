@@ -52,11 +52,9 @@ void tcp_pong(int message_no, size_t message_size, FILE *in_stream, int out_sock
 
 		/*** get time-stamp time2 from the clock ***/
 		/*** TO BE DONE START ***/
-		if(clock_gettime(CLOCK_TYPE, &time2) == -1){
-			int err = errno;
-			perror("clock_gettime() failed: "
-			return err;
-		}
+		if(clock_gettime(CLOCK_TYPE, &time2) == -1)
+			fail_errno("clock_gettime() failed: ");
+		
 		/*** TO BE DONE END ***/
 
 		if (sscanf(buffer, "%d\n", &seq) != 1)
@@ -67,11 +65,9 @@ void tcp_pong(int message_no, size_t message_size, FILE *in_stream, int out_sock
 
 		/*** get time-stamp time3 from the clock ***/
 		/*** TO BE DONE START ***/
-		if(clock_gettime(CLOCK_TYPE, &time3) == -1){
-			int err = errno;
-			perror("clock_gettime() failed: ");
-			return err;
-		}
+		if(clock_gettime(CLOCK_TYPE, &time3) == -1)
+			fail_errno("clock_gettime() failed: ");
+		
 		/*** TO BE DONE END ***/
 
 		sprintf(buffer, "%ld %ld, %ld %ld\n", (long)time2.tv_sec, time2.tv_nsec,
@@ -100,11 +96,9 @@ void udp_pong(int dgrams_no, int dgram_sz, int pong_socket)
 		/*** get time-stamp time2 from the clock ***/
 		/*** TO BE DONE START ***/
 
-		if(clock_gettime(CLOCK_TYPE, &time2) == -1){
-			int err = errno;
-			perror("clock_gettime() failed: "
-			return err;
-		}
+		if(clock_gettime(CLOCK_TYPE, &time2) == -1)
+			fail_errno("clock_gettime() failed: ");
+		
 
 		/*** TO BE DONE END ***/
 
@@ -143,11 +137,9 @@ void udp_pong(int dgrams_no, int dgram_sz, int pong_socket)
 		/*** get time-stamp time3 from the clock ***/
 		/*** TO BE DONE START ***/
 
-		if(clock_gettime(CLOCK_TYPE, &time3) == -1){
-			int err = errno;
-			perror("clock_gettime() failed: ");
-			return err;
-		}
+		if(clock_gettime(CLOCK_TYPE, &time3) == -1)
+			fail_errno("clock_gettime() failed: ");
+		
 
 		/*** TO BE DONE END ***/
 
@@ -184,15 +176,20 @@ int open_udp_socket(int *pong_port)
 
 		/*** create DGRAM socket, call getaddrinfo() to set port number, and bind() ***/
 		/*** TO BE DONE START ***/
-	udp_socket = socket(gai_hints->ai_family, gai_hints->ai_socktype, gain_hints->ai_protocol);
+	udp_socket = socket(gai_hints.ai_family, gai_hints.ai_socktype, gai_hints.ai_protocol);
 	if(udp_socket == -1)
-		fail_errno("Flailed socket() UDP: ");
-	
+		fail_errno("Failed socket() UDP: ");
+	*pong_port = port_number; // salvo la porta effimera	
 	// get addrinfo()
-	
-	getaddrinfo()
+	gai_rv = getaddrinfo(NULL, port_number_as_str, &gai_hints, &pong_addrinfo); // gai_rv immagino che sia gai return value
+	if(gai_rv != 0)
+		fail("getaddrinfo() failed in open_udp_socket function. ");
 
+		// bind()
+		if(bind_rv = bind(udp_socket, pong_addrinfo->ai_addr, pong_addrinfo->ai_addrlen) != 0)
+			fail_errno("bind() failed in open_udp_socket function. ");
 
+		return udp_socket;
 		/*** TO BE DONE END ***/
 
 		if (errno != EADDRINUSE)
@@ -323,11 +320,28 @@ void server_loop(int server_socket)
 		/*** check for possible accept() errors, and if connection was correctly
 			 establised fork() and have the child process call serve_client() ***/
 		/*** TO BE DONE START ***/
+		if(request_socket == -1){
+			if(errno == EINTR){
+				printf("Pong server listening...\n");
+				continue;
+			}
+			close(request_socket);
+			fail_errno(strerror(errno));
+		}
+	//  EINTR  The  system  call  was interrupted by a signal that was caught before a valid connection arrived; see signal(7).
+
+	pid = fork();
+	if(pid == -1){
+		fail_errno(strerror(errno));
+	}
+	else if(pid == 0){
+		serve_client(request_socket,&client_addr);
+	}
 
 		/*** TO BE DONE END ***/
 
 		if (close(request_socket))
-			fail_errno("Pong Server cannot close request socket");
+			fail_errno(strerror(errno));
 	}
 }
 
@@ -348,39 +362,24 @@ int main(int argc, char **argv)
 	 *** create STREAM socket, bind() and listen()                   ***/
 	/*** TO BE DONE START ***/
 
-	// gethostname():
-	char hostName[256];
-	if(gethostname(hostName, sizeof(hostName)) != 0){
-		int err = errno;
-		perror("Error while getting host name");
-		return err;
-	}
 	// getaddrinfo()
-	if (getaddrinfo(hostName,argv[1], gai_hints, server_addrinfo) != 0)
-	{
-		int err = errno;
-		perror("getaddrinfo() failed in pong server main:");
-		return err;
-	}
+	gai_rv = getaddrinfo(NULL,argv[1], &gai_hints, &server_addrinfo);
+	if (gai_rv != 0)
+			fail_errno(strerror(errno));
+	
 	// creo il socket stream
 	server_socket = socket(server_addrinfo->ai_family, server_addrinfo->ai_socktype, server_addrinfo->ai_protocol);
-	if(server_socket == -1){
-	int err =  errno;
-	perror("socket() failed: ");
-	return err;
-	}
+	if(server_socket == -1)
+			fail_errno(strerror(errno));
+	
 	// bind()
-	if(bind(server_socket, server_addrinfo->ai_addr, server_addrinfo->ai_addrlen) == -1){
-		int err = errno;
-		perror("Failed bind(): ");
-		return err;
-	}
+	if(bind(server_socket, server_addrinfo->ai_addr, server_addrinfo->ai_addrlen) == -1)
+			fail_errno(strerror(errno));
+	
 	// listen()
-if(listen(server_socket,) == -1){
-	int err = errno;
-	perror("listen() failed");
-	return err;
-}
+if(listen(server_socket,LISTENBACKLOG) != 0)
+			fail_errno(strerror(errno));
+
 
 
 	/*** TO BE DONE END ***/

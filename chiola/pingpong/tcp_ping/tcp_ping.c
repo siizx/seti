@@ -20,8 +20,6 @@
  */
 
 #include "pingpong.h"
-#include <stdbool.h> // cancellare, l'ho aggiunto io.
-bool debug = true; // mio debug
 
 /*
  * This function sends and wait for a reply on a socket.
@@ -40,7 +38,6 @@ double do_ping(size_t msg_size, int msg_no, char message[msg_size], int tcp_sock
 
 	/*** write msg_no at the beginning of the message buffer ***/
 	/*** TO BE DONE START ***/
-	if(debug) printf("~~~ do_ping 1111");
 
 	if (sprintf(message, "%d", msg_no) < 0)
 	{
@@ -101,7 +98,6 @@ double do_ping(size_t msg_size, int msg_no, char message[msg_size], int tcp_sock
 		   &(send_time.tv_sec), &(send_time.tv_nsec));
 	RTT_ms -= timespec_delta2milliseconds(&send_time, &recv_time);
 	return RTT_ms;
-	if(debug) printf("~~~ do_ping 2222");
 
 }
 
@@ -137,9 +133,8 @@ int main(int argc, char **argv)
 	/*** call getaddrinfo() in order to get Pong Server address in binary form ***/
 	/*** TO BE DONE START ***/
 	if (getaddrinfo(argv[1], argv[2], &gai_hints, &server_addrinfo) != 0)
-	{
-		fail("getaddrinfo failed inside main.");
-	}
+		fail_errno("getaddrinfo failed inside main.");
+	
 	/*** TO BE DONE END ***/
 
 	/*** Print address of the Pong server before trying to connect ***/
@@ -148,21 +143,14 @@ int main(int argc, char **argv)
 
 	/*** create a new TCP socket and connect it with the server ***/
 	/*** TO BE DONE START ***/
-	tcp_socket = socket(server_addrinfo->ai_family, server_addrinfo->ai_socktype, server_addrinfo->ai_protocol);
+	tcp_socket = socket(gai_hints.ai_family, gai_hints.ai_socktype, gai_hints.ai_protocol);
 	if (tcp_socket == -1)
-	{
-		int err = errno;
-		perror("socket() function failed in 'main'.");
-		return err;
-	}
+		fail_errno("socket() function failed in 'main'.");
 
 	// ora lo connetto col server
 	if (connect(tcp_socket, server_addrinfo->ai_addr, server_addrinfo->ai_addrlen) == -1)
-	{
-		int err = errno;
-		perror("Socket conection failed inside main.");
-		return errno;
-	}
+		fail_errno("Socket conection failed inside main.");
+	
 	/*** TO BE DONE END ***/
 
 	freeaddrinfo(server_addrinfo);
