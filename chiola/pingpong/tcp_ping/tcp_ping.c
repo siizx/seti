@@ -133,7 +133,7 @@ int main(int argc, char **argv)
 	/*** call getaddrinfo() in order to get Pong Server address in binary form ***/
 	/*** TO BE DONE START ***/
 	if (getaddrinfo(argv[1], argv[2], &gai_hints, &server_addrinfo) != 0)
-		fail_errno("getaddrinfo failed inside main.");
+		fail_errno("getaddrinfo failed inside main");
 	
 	/*** TO BE DONE END ***/
 
@@ -145,11 +145,11 @@ int main(int argc, char **argv)
 	/*** TO BE DONE START ***/
 	tcp_socket = socket(gai_hints.ai_family, gai_hints.ai_socktype, gai_hints.ai_protocol);
 	if (tcp_socket == -1)
-		fail_errno("socket() function failed in 'main'.");
+		fail_errno("socket() function failed in 'main'");
 
 	// ora lo connetto col server
 	if (connect(tcp_socket, server_addrinfo->ai_addr, server_addrinfo->ai_addrlen) == -1)
-		fail_errno("Socket conection failed inside main.");
+		fail_errno("Socket conection failed inside main");
 	
 	/*** TO BE DONE END ***/
 

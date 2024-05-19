@@ -53,7 +53,7 @@ void tcp_pong(int message_no, size_t message_size, FILE *in_stream, int out_sock
 		/*** get time-stamp time2 from the clock ***/
 		/*** TO BE DONE START ***/
 		if(clock_gettime(CLOCK_TYPE, &time2) == -1)
-			fail_errno("clock_gettime() failed: ");
+			fail_errno("clock_gettime() failed");
 		
 		/*** TO BE DONE END ***/
 
@@ -66,7 +66,7 @@ void tcp_pong(int message_no, size_t message_size, FILE *in_stream, int out_sock
 		/*** get time-stamp time3 from the clock ***/
 		/*** TO BE DONE START ***/
 		if(clock_gettime(CLOCK_TYPE, &time3) == -1)
-			fail_errno("clock_gettime() failed: ");
+			fail_errno("clock_gettime() failed");
 		
 		/*** TO BE DONE END ***/
 
@@ -97,7 +97,7 @@ void udp_pong(int dgrams_no, int dgram_sz, int pong_socket)
 		/*** TO BE DONE START ***/
 
 		if(clock_gettime(CLOCK_TYPE, &time2) == -1)
-			fail_errno("clock_gettime() failed: ");
+			fail_errno("clock_gettime() failed");
 		
 
 		/*** TO BE DONE END ***/
@@ -138,7 +138,7 @@ void udp_pong(int dgrams_no, int dgram_sz, int pong_socket)
 		/*** TO BE DONE START ***/
 
 		if(clock_gettime(CLOCK_TYPE, &time3) == -1)
-			fail_errno("clock_gettime() failed: ");
+			fail_errno("clock_gettime() failed");
 		
 
 		/*** TO BE DONE END ***/
@@ -178,7 +178,7 @@ int open_udp_socket(int *pong_port)
 		/*** TO BE DONE START ***/
 	udp_socket = socket(gai_hints.ai_family, gai_hints.ai_socktype, gai_hints.ai_protocol);
 	if(udp_socket == -1)
-		fail_errno("Failed socket() UDP: ");
+		fail_errno("Failed socket() UDP");
 	*pong_port = port_number; // salvo la porta effimera	
 	// get addrinfo()
 	gai_rv = getaddrinfo(NULL, port_number_as_str, &gai_hints, &pong_addrinfo); // gai_rv immagino che sia gai return value
@@ -187,7 +187,7 @@ int open_udp_socket(int *pong_port)
 
 		// bind()
 		if(bind_rv = bind(udp_socket, pong_addrinfo->ai_addr, pong_addrinfo->ai_addrlen) != 0)
-			fail_errno("bind() failed in open_udp_socket function. ");
+			fail_errno("bind() failed in open_udp_socket function");
 
 		return udp_socket;
 		/*** TO BE DONE END ***/
@@ -332,7 +332,7 @@ void server_loop(int server_socket)
 
 	pid = fork();
 	if(pid == -1){
-		fail_errno(strerror(errno));
+		fail_errno("fork() failed");
 	}
 	else if(pid == 0){
 		serve_client(request_socket,&client_addr);
@@ -341,7 +341,7 @@ void server_loop(int server_socket)
 		/*** TO BE DONE END ***/
 
 		if (close(request_socket))
-			fail_errno(strerror(errno));
+			fail_errno("close() failed");
 	}
 }
 
@@ -365,20 +365,20 @@ int main(int argc, char **argv)
 	// getaddrinfo()
 	gai_rv = getaddrinfo(NULL,argv[1], &gai_hints, &server_addrinfo);
 	if (gai_rv != 0)
-			fail_errno(strerror(errno));
+			fail_errno("getaddrinfo() failed inside main()");
 	
 	// creo il socket stream
 	server_socket = socket(server_addrinfo->ai_family, server_addrinfo->ai_socktype, server_addrinfo->ai_protocol);
 	if(server_socket == -1)
-			fail_errno(strerror(errno));
+			fail_errno("socket() failed inside main()");
 	
 	// bind()
 	if(bind(server_socket, server_addrinfo->ai_addr, server_addrinfo->ai_addrlen) == -1)
-			fail_errno(strerror(errno));
+			fail_errno("bind() failed");
 	
 	// listen()
 if(listen(server_socket,LISTENBACKLOG) != 0)
-			fail_errno(strerror(errno));
+			fail_errno("listen() failed");
 
 
 

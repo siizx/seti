@@ -47,7 +47,7 @@ double do_ping(size_t msg_size, int msg_no, char message[msg_size], int ping_soc
 	/*** Store the current time in send_time ***/
 /*** TO BE DONE START ***/
 	if(clock_gettime(CLOCK_TYPE, &send_time) != 0)
-		fail_errno("clock_gettime() failed in do_ping udp. ");
+		fail_errno("clock_gettime() failed in do_ping udp");
 
 /*** TO BE DONE END ***/
 
@@ -55,26 +55,34 @@ double do_ping(size_t msg_size, int msg_no, char message[msg_size], int ping_soc
 /*** TO BE DONE START ***/
 	sent_bytes = send(ping_socket, message, msg_size, MSG_DONTWAIT);
 	if(sent_bytes == -1)
-		fail_errno("send() failed. ");
+		fail_errno("send() failed");
 
 /*** TO BE DONE END ***/
 
 	/*** Receive answer through the socket (non blocking mode, with timeout) ***/
 /*** TO BE DONE START ***/
+	
+	// salvo il tempo del UDP_TIMEOUT in questo timeval
+	struct timeval tv;
+	tv.tv_sec = (int)timeout / 1000;
+	tv.tv_usec = 0;
+	// creo un set di file descriptors (che in questo caso avra' cardinalita' 1 (ping_socket)
+	fd_set recvfdset;
+	FD_ZERO(&recvfdset); // questo pulisce il set, cancella tutti i fd
+	FD_SET(ping_socket, &recvfdset); // inserisco ping_socket nel set
+	select(ping_socket+1, &recvfdset, NULL, NULL,&tv); // monitoro ping_socket, finche' non e' pronto per ricevere, con un timeout di 3 secondi. (NULL NULL sarebbero rispettivamente write e exceptions)
 	recv_bytes = recv(ping_socket, answer_buffer, msg_size, MSG_DONTWAIT);
+
 	if(recv_bytes < 0) recv_errno = errno;
 	else recv_errno = 0;
 	
-//	if(recv_errno == EAGAIN || recv_errno == EWOULDBLOCK){
-//		select(ping_socket,
-//	}
 
 /*** TO BE DONE END ***/
 
 	/*** Store the current time in recv_time ***/
 /*** TO BE DONE START ***/
 	if(clock_gettime(CLOCK_TYPE, &recv_time) == -1)
-		fail_errno("clock_gettime() failed. ");
+		fail_errno("clock_gettime() failed");
 
 /*** TO BE DONE END ***/
 
@@ -133,7 +141,7 @@ int prepare_udp_socket(char *pong_addr, char *pong_port)
     /*** change ping_socket behavior to NONBLOCKing using fcntl() ***/
 /*** TO BE DONE START ***/
 	if(fcntl(ping_socket, F_SETFL, O_NONBLOCK) == -1)
-		fail_errno("fcntl() failed. ");
+		fail_errno("fcntl() failed");
 
 /*** TO BE DONE END ***/
 
@@ -218,7 +226,7 @@ int main(int argc, char *argv[])
 /*** TO BE DONE START ***/
 	ask_socket = socket(server_addrinfo->ai_family, server_addrinfo->ai_socktype, server_addrinfo->ai_protocol); 
 	if(ask_socket == -1)
-		fail_errno("socket() failed. ");
+		fail_errno("socket() failed");
 
 	if(connect(ask_socket, server_addrinfo->ai_addr,server_addrinfo->ai_addrlen) == -1)
 		fail_errno("connect() failed inside main");
@@ -231,7 +239,7 @@ int main(int argc, char *argv[])
     /*** Write the request on the TCP socket ***/
 /** TO BE DONE START ***/
 	if(write(ask_socket, request, sizeof(request)) == -1)
-		fail_errno("write() failed. ");
+		fail_errno("write() failed");
 
 /*** TO BE DONE END ***/
 
