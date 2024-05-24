@@ -7,9 +7,25 @@
 // stringhe lunghissime.
 
 #include <stdio.h>
+#include <unistd.h>
 #include <sys/wait.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdbool.h>
+
+bool debug = true;
+
+void dbg_str(char* str){
+	if(debug){
+		printf("%s\n", str);
+	}
+}
+
+void dbg_str_int(char* str, int num){
+	if(debug){
+		printf("%s %d\n",str, num);
+	}
+}
 
 int fail(char *str){
 	fprintf(stderr, str);
@@ -44,21 +60,32 @@ int main(){
 	filename = fgets(filename, sz, stdin);
 	if(filename == NULL)
 		fail("fgets() failed");
-	printf("Hai scelto: %s", filename);
+	if(debug) printf("Hai scelto: %s", filename);
 	filename[strcspn(filename, "\n")] = 0; // questo rimuove \n in filename (colpa di fgets)
+	// strcspn(a,b) = scansiona 'a' fino a che non trova 'b' e ritorna il numero della posizione
+	// di 'b' in 'a'
 
+	// metto insieme le stringhe concatenandole:
 	strncat(full_path, path_suffix, sz);
 	strncat(full_path, filename, sz);
-//	sprintf(full_path,"%s %s", path_suffix, filename);
-	printf("Verra' eseguito il file '%s'\n", full_path);
+	printf("Verra' eseguito il file '%s':\n", full_path);
 
+	// FORK()
+	pid_t pid = fork();
+	if(pid == -1)
+		fail_errno("fork() failed");
+	else if(pid == 0){
+		// figlio - eseguo il file
+		if(execl(full_path, filename,(char*)NULL) == -1)
+			fail_errno("execl() failed");
+	}
+	// qui solo il padre dovrebbe vedere - (pid > 0)
+	int wstatus;
+	if(wait(&wstatus) == -1)
+		fail_errno("wait() failed");
+	if(WIFEXITED(wstatus))
+		dbg_str_int("child exited with exit status", WEXITSTATUS(wstatus));
 
-
-	// 
-
-
-
-
-
+	dbg_str("Padre: return 0;\n");
 	return 0;
 }

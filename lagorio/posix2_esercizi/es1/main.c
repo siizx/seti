@@ -27,19 +27,18 @@ int main(){
 	if(pid == -1)
 		fail_errno("failed fork()");
 	else if(pid == 0){
+		// child
 		if(execl("/usr/bin/ls", "ls","-l",  (char *)NULL) == -1)
 			fail_errno("exec() failed");
+		// test per ricordarmi se da qui in poi viene eseguito o no:
+		printf("ffffffffffffffff\n"); // NO, NON viene eseguito.
 	}else{
-		// wait for child
+		// father - wait for child
 		if(wait(&wstatus) == -1)
 			fail_errno("wait() failed");
 		else{
-			if(!WIFEXITED(wstatus)){
-				char str[256];
-				sprintf(str, "wait failed with exit status %d", WEXITSTATUS(wstatus));
-				fail_errno(str);
-			}
-			else printf("child exited normally.\n"); 
+			if(WIFEXITED(wstatus))
+				printf("child exited normally with exit status %d\n", WEXITSTATUS(wstatus));
 		}	
 	}
 	return 0;
