@@ -13,7 +13,7 @@
 #include <string.h>
 #include <stdbool.h>
 
-bool debug = true;
+bool debug = false;
 
 void dbg_str(char* str){
 	if(debug){
@@ -60,7 +60,6 @@ int main(){
 	filename = fgets(filename, sz, stdin);
 	if(filename == NULL)
 		fail("fgets() failed");
-	if(debug) printf("Hai scelto: %s", filename);
 	filename[strcspn(filename, "\n")] = 0; // questo rimuove \n in filename (colpa di fgets)
 	// strcspn(a,b) = scansiona 'a' fino a che non trova 'b' e ritorna il numero della posizione
 	// di 'b' in 'a'
@@ -68,7 +67,7 @@ int main(){
 	// metto insieme le stringhe concatenandole:
 	strncat(full_path, path_suffix, sz);
 	strncat(full_path, filename, sz);
-	printf("Verra' eseguito il file '%s':\n", full_path);
+	if(debug)printf("Verra' eseguito il file '%s':\n", full_path);
 
 	// FORK()
 	pid_t pid = fork();
