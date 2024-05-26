@@ -47,7 +47,9 @@ void allocCheck(char* ptr){
 }
 
 void stringCheck(char* str){
-	if(strcmp(str, "") == 0) printf("Empty strings are not valid.");
+	if(strcmp(str, "") == 0) dbgStr("Empty strings are not valid.\n");
+	if(strcmp(str, "\n") == 0) dbgStr("Empty strings are not valid.\n");
+	if(atoi(str) == EOF) printf("\n");
 }
 
 int main(){
@@ -55,18 +57,26 @@ int main(){
 	const int sz = 256; // char* max allocation size
 	char* partialPath = "/bin/";
 	char* nano = "nano-shell $ ";
+	char* env = getenv(env);	
+	if(!env) fail("getenv() failed\n");
+
 	char* userInput = calloc(sz, sizeof(char)); // user input memory allocation
 	allocCheck(userInput); // check is calloc succeded
 
 	do{
 		printf(nano); // nano-shell $
 		userInput = fgets(userInput, sizeof(userInput) -1, stdin); // USER INPUT
-		if(!userInput) fail("fgets() failed)"); // check if null
-		else stringCheck(userInput); // check if string is ok
+		if(userInput) stringCheck(userInput); // check if string is ok
+		else {
+			dbgStr("fgets() returned null (probably because of ctrl-d or ctrl-z without any other input from user.\n");
+			exit(EXIT_SUCCESS);
+		}
+	// la stringa ha passato i check. proseguo con l'esecuzione:
 
 	}while(atoi(userInput) != EOF && userInput != "exit");
 		
-
+	// libero la memoria che non mi serve piu'
+	free(userInput);
 	return 0;
 }
 

@@ -6,6 +6,13 @@
 // Per esempio,stringa vuota, stringhe contenenti caratteri non stampabili, 
 // stringhe lunghissime.
 
+//  ____            __      _   _        _ 
+// |  _ \ ___ _ __ / _| ___| |_| |_ ___ | |
+// | |_) / _ \ '__| |_ / _ \ __| __/ _ \| |
+// |  __/  __/ |  |  _|  __/ |_| || (_) |_|
+// |_|   \___|_|  |_|  \___|\__|\__\___/(_)
+// (direi)...                                        
+
 #include <stdio.h>
 #include <unistd.h>
 #include <sys/wait.h>
@@ -48,12 +55,15 @@ int main(){
 	// Preparo variabili:
 	unsigned int sz = 256;
 	char* path_suffix = "/bin/"; // PATH SUFFIX 
-	char* full_path = malloc(sz); // FULL PATH
+	char* full_path = calloc(sz, sizeof(char)); // FULL PATH - sz*elements of size N (char = 1 byte)
+			// Qua uso calloc perche' a strncat() serve leggere \0.
+			// malloc alloca la memoria ma non la pulisce, cosi' quando full_path arriva a strncat, 
+			// non sa dove finisce la stringa. allora mantenendo malloc() avremmo dovuto mettere
+			// \0 alla posizione 0. invece con calloc, non abbiamo questo problema perche' 
+			// inizializza la memoria a \0.
 	check_malloc(full_path);
 	char* filename = malloc(sz);
 	check_malloc(filename);
-	char *fgets_res = malloc(sz); 
-	check_malloc(fgets_res);
 
 	// prendo l'input dall'utente:
 	printf("Che file vuoi eseguire da /bin/ ?\n");
@@ -65,20 +75,35 @@ int main(){
 	// di 'b' in 'a'
 
 	// metto insieme le stringhe concatenandole:
-	strncat(full_path, path_suffix, sz);
-	strncat(full_path, filename, sz);
+	dbg_str_int("strlen(full_path) =", strlen(full_path)); // strlen = 0
+	strncat(full_path, path_suffix, sz - strlen(full_path) -1);
+	strncat(full_path, filename, sz - strlen(full_path) -1);
+				// sz memoria totale allocata, - lunghezza di strlen (solo \0), 
+				// -1 perche' deve avere lo spazio per terminare la stringa con \0
 	if(debug)printf("Verra' eseguito il file '%s':\n", full_path);
-
+	
 	// FORK()
 	pid_t pid = fork();
-	if(pid == -1)
+	if(pid == -1){
+		// prima libero la memoria e poi chiamo fail errno.
+		free(filename);
+		free(full_path);
 		fail_errno("fork() failed");
+	}
 	else if(pid == 0){
 		// figlio - eseguo il file
-		if(execl(full_path, filename,(char*)NULL) == -1)
+		if(execl(full_path, filename,(char*)NULL) == -1){
+			// libero la memoria e POI chiamo fail_errno():
+			free(filename);
+			free(full_path);
 			fail_errno("execl() failed");
+		}
 	}
 	// qui solo il padre dovrebbe vedere - (pid > 0)
+	// libero la memoria che non mi serve piu':
+	free(filename);
+	free(full_path);
+	// ora controllo lo stato di uscita del figlio:
 	int wstatus;
 	if(wait(&wstatus) == -1)
 		fail_errno("wait() failed");
