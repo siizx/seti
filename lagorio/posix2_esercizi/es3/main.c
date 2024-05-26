@@ -40,10 +40,54 @@ void fail_errno(char* str){
 	exit(EXIT_FAILURE);
 }
 
+// ############## MALLOC/CALLOC CHECK
+
+void allocCheck(char* ptr){
+	if(!ptr) fail_errno("memory allocation failed");
+}
+
+void stringCheck(char* str){
+	if(strcmp(str, "") == 0) printf("Empty strings are not valid.");
+}
+
 int main(){
+	
+	const int sz = 256; // char* max allocation size
+	char* partialPath = "/bin/";
+	char* nano = "nano-shell $ ";
+	char* userInput = calloc(sz, sizeof(char)); // user input memory allocation
+	allocCheck(userInput); // check is calloc succeded
 
+	do{
+		printf(nano); // nano-shell $
+		userInput = fgets(userInput, sizeof(userInput) -1, stdin); // USER INPUT
+		if(!userInput) fail("fgets() failed)"); // check if null
+		else stringCheck(userInput); // check if string is ok
 
-
+	}while(atoi(userInput) != EOF && userInput != "exit");
+		
 
 	return 0;
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
