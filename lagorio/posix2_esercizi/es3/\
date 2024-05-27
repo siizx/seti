@@ -55,8 +55,9 @@ void exitSuccess(){
 }
 
 int isStringExit(char* str){
-	if(atoi(str) == EOF || strcmp(str, "exit\n") == 0){ 
+	if(atoi(str) == EOF || str == "exit\n"){ 
 		dbgStr("user exited the program.");
+		exitSuccess();
 		return 1;
 	} else return 0;
 }
@@ -86,14 +87,8 @@ int main(){
 	do{
 		printf(nano); // nano-shell $
 		userInput = fgets(userInput, sizeof(userInput) -1, stdin); // USER INPUT
-		if(userInput == NULL) {
-			free(userInput);
-			exitSuccess();
-		}
-		else if(isStringExit(userInput)) {
-			free(userInput);
-			exitSuccess();
-		}
+		if(userInput == NULL) exitSuccess();
+		else isStringExit(userInput);
 		// la stringa ha passato i check. proseguo con l'esecuzione:
 		
 		char* token; // stringa per salvare i singoli paths
@@ -105,17 +100,8 @@ int main(){
 			dbgStr(token);
 			token = strtok(NULL, delim);
 		}
-		// trovato access -> eseguo fork e exec:
-
-
-
-
-		userInput[0] = '\0';
+		&userInput[0] = '\0';
 		free(token);
-		PATH = getenv("PATH");
-		//token = calloc(sizeof(PATH)+1, sizeof(char));
-		//allocCheck(token);
-		//if(strcpy(token, PATH) <= 0) fail("strcpy() failed");
 	// end nano loop
 	}while(atoi(userInput) != EOF && strcmp(userInput, "exit\n"));
 		
