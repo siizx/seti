@@ -18,14 +18,11 @@
 #include <errno.h>
 #include <stdbool.h>
 
-bool debug = true;
+bool debug = false;
 
 void dbgStr(char* str){
+	if(debug)
 	printf("%s\n", str);
-}
-
-void dbgStrInt(char* str, int num){
-	printf("%s%d\n", str, num);
 }
 
 void fail(char* str){
@@ -63,7 +60,6 @@ int main(){
 											// insomma aggiro il problema per ora...
 	if(!pathBackup) exit(EXIT_SUCCESS); // controllo che getenv sia andata a buon fine.
 	char * nano = "nano-shell $ ";
-	bool found = false; // bool dedicato all'uso di access()
 	
 	char *path; // questa variabile e' quella che daro' in pasto ad strtok. 
 //	allocCheck(path);
@@ -72,8 +68,10 @@ int main(){
 
 	
 	while(1){ // NANO LOOP
-		char* userInput ;//= (char*)malloc(sz * sizeof(char)); 
-	//	dbgStr(path); // stampo l'intero path che sara' argomento di strtok
+
+		bool found = false; // bool dedicato all'uso di access()
+		char userInput[sz]; // non ci credo... la memoria dinamica mi stava facendo diventare pazzo.
+		dbgStr(path); // stampo l'intero path che sara' argomento di strtok
 		printf(nano); // stampo "nano-shell $ "
 		fgets(userInput, sz -1, stdin); // -1 perche' viene aggiunto \0
 		if(feof(stdin)){
@@ -94,38 +92,49 @@ int main(){
 		userInput[strcspn(userInput,"\n")] = '\0'; //rimpiazzo \n con \0
 		char* token = strtok(path, ":");
 		// printf("~token after strtok(path,del): %s\n", token);
+
+		char command_path_final[sz]; // qui salvero' il path valido.
 		
-
-
-		do{ // cerco userinput nei paths
+		while(token && !found){ // cerco userinput nei paths
 			
-			
-			
-
+			char command_path[sz];
+			command_path[0] = '\0';
+			strcat(command_path, token);
+			strcat(command_path, "/"); // mancava lo slash delle directories...
+			strcat(command_path, userInput);
+			// ORA ho il command_path e' aggiornato e andiamo a vedere se il comando esiste
+			// usando access().
+			int access_res = access(command_path, X_OK);
+			if(!access_res) { // se access_res == 0 vuol dire success
+				found = true;
+				strncpy(command_path_final, command_path, sizeof(command_path) -1);
+			}
+			else if(access_res == -1);// dbgStr(stderr, "access() failed. Probably because the file doesn't exist.\n");
 			token = strtok(NULL, ":");
 			//printf("~token after strtok(NULL,del): %s\n", token);
-			// access(,X_OK);
 		
-		}while(token && !found); // token() trovato o path finito.
-
-		//strcat( // access result
-
-		// dbgStr(userInput); // stampo user input 
+		} // token() trovato o path finito.
 		
-		// fork()
-		pid_t pid = fork();
-		if(pid == -1) fail_errno("fork() failed");
-		else if(pid == 0){
-			//execl( // PRIMA DEVO CONCATENARE...:w
-			break; // da cancellare, provvisorio
+		if(found){ 	// found == true:
+			// fork()
+			pid_t pid = fork();
+			if(pid == -1) fail_errno("fork() failed");
+			else if(pid == 0){
+				if(execl(command_path_final, userInput, NULL) == -1) fail_errno("execl() failed.");
+			}
+			
+			int wstatus;
+			wait(&wstatus);
+			
+			free(path);
+			path = strdup(pathBackup);	
+			allocCheck(path);
+		}// fine fork() | found == true
+		else if(!found){
+			printf("nessun eseguibile trovato.\n");
+			free(path);
+			path = strdup(pathBackup);	
 		}
-		
-		int wstatus;
-		wait(&wstatus);
-		
-		free(path);
-		path = strdup(pathBackup);	
-		allocCheck(path);
 	} // FINE NANO LOOP
 
 	free(path);
