@@ -57,18 +57,56 @@ void allocCheck(char* ptr){
 int main(){
 
 	const int sz = 256;
-	const char* pathBackup = getenv("PATH"); // qui salvo il path, ma questa variabile non la uso con strtok, altrimenti da problemi nei loop della nano bash che non ho voglia di debuggare. insomma aggiro il problema per ora...
-	if(!pathBackup) exit(EXIT_SUCCESS);
-
+	const char* pathBackup = getenv("PATH"); // qui salvo il path, ma questa variabile non la 
+											// uso con strtok, altrimenti da problemi nei loop
+											// della nano bash che non ho voglia di debuggare. 
+											// insomma aggiro il problema per ora...
+	if(!pathBackup) exit(EXIT_SUCCESS); // controllo che getenv sia andata a buon fine.
+	char * nano = "nano-shell $ ";
 	bool found = false; // bool dedicato all'uso di access()
 	
-	char *path; // questa variabile e' quella ceh daro' in pasto ad strtok. 
+	char *path; // questa variabile e' quella che daro' in pasto ad strtok. 
 //	allocCheck(path);
 	path = strdup(pathBackup);
-	if(!path) fail_errno("strdup() failed");
-	
-	dbgStr(path);
+	if(!path) fail_errno("strdup() failed"); // strdup check
 
+	char* userInput = calloc(sz, sizeof(char));
+
+	
+	while(userInput){ // NANO LOOP
+		dbgStr(path); // stampo l'intero path che sara' argomento di strtok
+		printf(nano); // stampo "nano-shell $ "
+		userInput = fgets(userInput, sz -1, stdin); // -1 perche' viene aggiunto \0
+		
+		userInput[strcspn(userInput,"\n")] = '\0';
+		char* token = strtok(path, ":");
+		printf("~token after strtok(path,del): %s\n", token);
+		//CONTINUARE DA QUA
+		do{ // cerco userinput nei paths
+
+			token = strtok(NULL, ":");
+
+			// access(,X_OK);
+		
+		}while(token); // token() trovato o path finito.
+
+		//strcat( // access result
+
+		// dbgStr(userInput); // stampo user input 
+		
+		// fork()
+		pid_t pid = fork();
+		if(pid == -1) fail_errno("fork() failed");
+		else if(pid == 0){
+			//execl( // PRIMA DEVO CONCATENARE...:w
+			return 0; // da cancellare, provvisorio
+		}
+		
+		int wstatus;
+		wait(&wstatus);
+
+	
+	} // FINE NANO LOOP
 	free(path);
 	return 0;
 }
