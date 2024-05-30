@@ -70,12 +70,10 @@ int main(){
 	path = strdup(pathBackup);
 	if(!path) fail_errno("strdup() failed"); // strdup check
 
-	//sposto dentro al loop:  char* userInput = (char*)malloc(sz * sizeof(char)); 
-
 	
 	while(1){ // NANO LOOP
-		char* userInput = (char*)malloc(sz * sizeof(char)); 
-		dbgStr(path); // stampo l'intero path che sara' argomento di strtok
+		char* userInput ;//= (char*)malloc(sz * sizeof(char)); 
+	//	dbgStr(path); // stampo l'intero path che sara' argomento di strtok
 		printf(nano); // stampo "nano-shell $ "
 		fgets(userInput, sz -1, stdin); // -1 perche' viene aggiunto \0
 		if(feof(stdin)){
@@ -83,22 +81,29 @@ int main(){
 			printf("\n");
 			break;	
 		}
-		else if(strcmp(userInput,"exit\n") == 0 || !userInput || atoi(userInput) == EOF){ 
-			free(userInput);
+		else if(isStringExit(userInput)){ 
 			break;
 		}
-		else if(strcmp(userInput, "\n") == 0 ||strcmp(userInput, " \n") == 0 ||strcmp(userInput, "\t\n") == 0) continue; 
-
+		else if(isStringEmpty(userInput)){ 
+			
+			free(path);
+			path = strdup(pathBackup);	
+			allocCheck(path);
+			continue; 
+		}
 		userInput[strcspn(userInput,"\n")] = '\0'; //rimpiazzo \n con \0
 		char* token = strtok(path, ":");
-		printf("~token after strtok(path,del): %s\n", token);
+		// printf("~token after strtok(path,del): %s\n", token);
 		
 
 
 		do{ // cerco userinput nei paths
+			
+			
+			
 
 			token = strtok(NULL, ":");
-			printf("~token after strtok(NULL,del): %s\n", token);
+			//printf("~token after strtok(NULL,del): %s\n", token);
 			// access(,X_OK);
 		
 		}while(token && !found); // token() trovato o path finito.
@@ -121,7 +126,6 @@ int main(){
 		free(path);
 		path = strdup(pathBackup);	
 		allocCheck(path);
-		free(userInput);
 	} // FINE NANO LOOP
 
 	free(path);
