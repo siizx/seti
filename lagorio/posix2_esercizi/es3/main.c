@@ -57,12 +57,12 @@ void allocCheck(char* ptr){
 int main(){
 
 	const int sz = 256;
-	char* pathBackup = getenv("PATH");
+	const char* pathBackup = getenv("PATH"); // qui salvo il path, ma questa variabile non la uso con strtok, altrimenti da problemi nei loop della nano bash che non ho voglia di debuggare. insomma aggiro il problema per ora...
 	if(!pathBackup) exit(EXIT_SUCCESS);
 
 	bool found = false; // bool dedicato all'uso di access()
 	
-	char *path; // = calloc(sizeof(pathBackup, sizeof(char))); // variabile da utilizzare con strtok()
+	char *path; // questa variabile e' quella ceh daro' in pasto ad strtok. 
 //	allocCheck(path);
 	path = strdup(pathBackup);
 	if(!path) fail_errno("strdup() failed");
