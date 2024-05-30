@@ -70,25 +70,38 @@ int main(){
 	path = strdup(pathBackup);
 	if(!path) fail_errno("strdup() failed"); // strdup check
 
-	char* userInput = calloc(sz, sizeof(char));
+	//sposto dentro al loop:  char* userInput = (char*)malloc(sz * sizeof(char)); 
 
 	
-	while(userInput){ // NANO LOOP
+	while(1){ // NANO LOOP
+		char* userInput = (char*)malloc(sz * sizeof(char)); 
 		dbgStr(path); // stampo l'intero path che sara' argomento di strtok
 		printf(nano); // stampo "nano-shell $ "
-		userInput = fgets(userInput, sz -1, stdin); // -1 perche' viene aggiunto \0
-		
-		userInput[strcspn(userInput,"\n")] = '\0';
+		fgets(userInput, sz -1, stdin); // -1 perche' viene aggiunto \0
+		if(feof(stdin)){
+			clearerr(stdin);
+			printf("\n");
+			break;	
+		}
+		else if(strcmp(userInput,"exit\n") == 0 || !userInput || atoi(userInput) == EOF){ 
+			free(userInput);
+			break;
+		}
+		else if(strcmp(userInput, "\n") == 0 ||strcmp(userInput, " \n") == 0 ||strcmp(userInput, "\t\n") == 0) continue; 
+
+		userInput[strcspn(userInput,"\n")] = '\0'; //rimpiazzo \n con \0
 		char* token = strtok(path, ":");
 		printf("~token after strtok(path,del): %s\n", token);
-		//CONTINUARE DA QUA
+		
+
+
 		do{ // cerco userinput nei paths
 
 			token = strtok(NULL, ":");
-
+			printf("~token after strtok(NULL,del): %s\n", token);
 			// access(,X_OK);
 		
-		}while(token); // token() trovato o path finito.
+		}while(token && !found); // token() trovato o path finito.
 
 		//strcat( // access result
 
@@ -99,14 +112,18 @@ int main(){
 		if(pid == -1) fail_errno("fork() failed");
 		else if(pid == 0){
 			//execl( // PRIMA DEVO CONCATENARE...:w
-			return 0; // da cancellare, provvisorio
+			break; // da cancellare, provvisorio
 		}
 		
 		int wstatus;
 		wait(&wstatus);
-
-	
+		
+		free(path);
+		path = strdup(pathBackup);	
+		allocCheck(path);
+		free(userInput);
 	} // FINE NANO LOOP
+
 	free(path);
 	return 0;
 }
