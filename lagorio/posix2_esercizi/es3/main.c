@@ -10,6 +10,13 @@
 // • cosa succede se non utilizzate wait?
 // • Possibile migliorie: potrebbe cercare in tutto il PATH
 
+//  _____ _       _ _        _ 
+// |  ___(_)_ __ (_) |_ ___ | |
+// | |_  | | '_ \| | __/ _ \| |
+// |  _| | | | | | | || (_) |_|
+// |_|   |_|_| |_|_|\__\___/(_)
+                            
+
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -131,7 +138,7 @@ int main(){
 			allocCheck(path);
 		}// fine fork() | found == true
 		else if(!found){
-			printf("nessun eseguibile trovato.\n");
+			perror("nessun eseguibile trovato.");
 			free(path);
 			path = strdup(pathBackup);	
 		}
