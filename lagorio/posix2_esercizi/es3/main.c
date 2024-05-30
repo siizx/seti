@@ -25,6 +25,12 @@
 #include <errno.h>
 #include <stdbool.h>
 
+// provo ad aggiungere i colori: 
+#define ANSI_COLOR_GREEN   "\x1b[32m"
+#define ANSI_COLOR_RESET   "\e[1;32m"
+#define ANSI_BOLD_ON   "\e[1m"
+#define ANSI_BOLD_OFF   "\e[0m"
+
 bool debug = false;
 
 void dbgStr(char* str){
@@ -66,7 +72,7 @@ int main(){
 											// della nano bash che non ho voglia di debuggare. 
 											// insomma aggiro il problema per ora...
 	if(!pathBackup) exit(EXIT_SUCCESS); // controllo che getenv sia andata a buon fine.
-	char * nano = "nano-shell $ ";
+	char * nano = ANSI_BOLD_ON ANSI_COLOR_GREEN "nano-shell $ " ANSI_BOLD_OFF; // ANSI_COLOR_RESET; non serve. ANSI_BOLD_OFF resetta gia tutto, se aggiungo ANSI_COLOR_RESET si bugga.
 	
 	char *path; // questa variabile e' quella che daro' in pasto ad strtok. 
 //	allocCheck(path);
