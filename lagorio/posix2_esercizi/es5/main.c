@@ -47,7 +47,7 @@ int main(){
 	
 
 	if(!pid){ // FIGLIO
-		
+				
 	}
 
 
