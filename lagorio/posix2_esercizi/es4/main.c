@@ -7,6 +7,13 @@
 
 // PER MANCANZA DI TEMPO implementero' in maniera "pigra", concentrandomi sulle nuove system call.
  
+//  _____     _   _        _ 
+// |  ___|_ _| |_| |_ ___ | |
+// | |_ / _` | __| __/ _ \| |
+// |  _| (_| | |_| || (_) |_|
+// |_|  \__,_|\__|\__\___/(_)
+                          
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <sys/wait.h>
@@ -16,7 +23,7 @@
 #include <unistd.h>
 #include <fcntl.h>
 
-#define debug  1
+#define debug  0
 
 void dbg(char* str){
 	if(debug) printf("%s\n",str);
@@ -59,15 +66,15 @@ int main(int argc, char* argv[]){
 	if(pid == -1) fail_errno("fork() failed\n"); // se fork e' fallita, esco.
 	else if(!pid){ // FIGLIO
 		// redireziono l'output nel file scelto
-		if(dup2(STDOUT_FILENO, fd) == -1) fail_errno("dup2() failed");
+		if(dup2(fd,STDOUT_FILENO) == -1) fail_errno("dup2() failed");
 		// eseguo il comando:
 		if(execl(path_ls, list, argo, NULL) == -1) fail_errno("execl() failed");
 	} // FINE FIGLIO
 	// DA QUI IN POI: PADRE
-	// metto a posto stdout:
-	if(dup2(STDOUT_FILENO, stdout_fd_backup) == -1) fail_errno("dup2() failed");
 	int wstatus;
 	wait(&wstatus);
+	// metto a posto stdout:
+	if(dup2(STDOUT_FILENO, stdout_fd_backup) == -1) fail_errno("dup2() failed");
 	// qui controllo il codice di uscita del figlio (da aggiungere)
 	
 	close(fd);
