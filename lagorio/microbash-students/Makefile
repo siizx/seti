@@ -8,9 +8,3 @@ microbash: microbash.o
 clean:
 	rm -f microbash microbash.o
 
-tar: clean
-	cd .. && tar cvJf microbash-students.tar.xz microbash-students
-
-.PHONY: clean tar
-
-
