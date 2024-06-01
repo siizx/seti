@@ -73,15 +73,11 @@ int main(){
 	wait(NULL);	
 	wait(NULL);
 
-<<<<<<< HEAD
 	close(pipefd[0]);
 	close(pipefd[1]);
-=======
 	if(!pid){ // FIGLIO
 				
 	}
-
->>>>>>> bac7ffa84f13f96cb75f0147d7b29cc6afff4f94
 
 	if(dup2(stdoutBackup, STDOUT_FILENO) == -1) fail_errno("dup2 restore stdout failed");
 	if(dup2(stdinBackup, STDIN_FILENO) == -1) fail_errno("dup2 restore stdin failed");
