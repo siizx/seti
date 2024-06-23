@@ -82,7 +82,7 @@ ssize_t nonblocking_write_all(int fd, const void *ptr, size_t n)
 		{
 
 			/*** TO BE DONE START ***/
-			if (errno == EAGAIN || errno == EWOULDBLOCK || errno == EINTR)
+			if (errno == EAGAIN || errno == EWOULDBLOCK || errno == EINTR) // EAGAIN "Resource temporarily unavailable" == EWOULDBLOCK "Operation would block". su linux hanno lo stesso valore su qualunque architettura. Mentre EINTR: "Interrupted function call".
 			{
 				printf(" ... write would block\n");
 				continue;
