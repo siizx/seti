@@ -1,3 +1,4 @@
+#error Please read the accompanying microbash.pdf before hacking this source code (and removing this line).
 /*
  * Micro-bash v2.2
  *
@@ -88,17 +89,6 @@ void free_command(command_t * const c)
 {
 	assert(c==0 || c->n_args==0 || (c->n_args > 0 && c->args[c->n_args] == 0)); /* sanity-check: if c is not null, then it is either empty (in case of parsing error) or its args are properly NULL-terminated */
 	/*** TO BE DONE START ***/
-	// ATTENZIONE: ricordiamo che "char **args" e' un array di stringhe in memoria dinamica.
-	// assert: se argomento == true -> tuto ok, altrimenti errore
-	if(c->args){ // se c->args non e' nullo:
-		for(int i = 0; i < c->n_args; i++){
-			free(c->args[i]); // libero la memoria di ogni stringa dell'array (c)
-		}
-		free(c->args);// libero l'array stesso
-	}
-	free(c->out_pathname); //libero ogni puntatore contenuto in c, e infine libero c.
-	free(c->in_pathname);
-	free(c);
 	/*** TO BE DONE END ***/
 }
 
@@ -106,16 +96,6 @@ void free_line(line_t * const l)
 {
 	assert(l==0 || l->n_commands>=0); /* sanity-check */
 	/*** TO BE DONE START ***/
-
-	// stesso discorso di sopra, commands e' un array di commands_t.
-	if(l){
-		for(int i = 0; i < l->n_commands; i++){ //fino a che ci sono command_t nell'array:
-			free_command(l->commands[i]); // libero la command_t
-		}
-		free(l->commands); // poi libero l'array stesso
-	}
-	free(l); // infone libero line_t, ovvero l.
-
 	/*** TO BE DONE END ***/
 }
 
@@ -179,15 +159,6 @@ command_t *parse_cmd(char * const cmdstr)
 			if (*tmp=='$') {
 				/* Make tmp point to the value of the corresponding environment variable, if any, or the empty string otherwise */
 				/*** TO BE DONE START ***/
-
-				char envar[256]; // creo una variabile su cio savare il resto del token (per getenv).
-				memset(envar, 0, 256); // per sicurezza azzero la memoria.
-				for(int i = 1; tmp[i] != '\0'; i++){ // copioil resto del token in envar
-					envar[i-1] = tmp[i];
-				}
-				tmp = getenv(envar); // faccio puntare tmp alla variabile d'ambiente richiesta.
-				if(!tmp) tmp = ""; // altrimenti punta ad una stringa vuota.
-
 				/*** TO BE DONE END ***/
 			}
 			result->args[result->n_args++] = my_strdup(tmp);
@@ -235,7 +206,6 @@ check_t check_redirections(const line_t * const l)
 	 * message and return CHECK_FAILED otherwise
 	 */
 	/*** TO BE DONE START ***/
-
 	/*** TO BE DONE END ***/
 	return CHECK_OK;
 }
