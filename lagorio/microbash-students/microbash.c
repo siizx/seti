@@ -102,7 +102,6 @@ void free_command(command_t * const c)
 	in_pathname = NULL;
 	// ora libero la memoria del command_t 'c'.
 	free(c);
-	c = NULL;
 	/*** TO BE DONE END ***/
 }
 
@@ -151,36 +150,43 @@ void print_line(const line_t * const l)
 command_t *parse_cmd(char * const cmdstr)
 {
 	static const char *const BLANKS = " \t";
-	command_t * const result = my_malloc(sizeof(*result));
+	command_t * const result = my_malloc(sizeof(*result)); // puntatore costante a command_t
 	memset(result, 0, sizeof(*result));
 	char *saveptr, *tmp;
 	tmp = strtok_r(cmdstr, BLANKS, &saveptr);
 	while (tmp) {
 		result->args = my_realloc(result->args, (result->n_args + 2)*sizeof(char *));
 		if (*tmp=='<') {
-			if (result->in_pathname) {
+			if (result->in_pathname) { // se esiste gia un in_pathname...
 				fprintf(stderr, "Parsing error: cannot have more than one input redirection\n");
 				goto fail;
 			}
-			if (!tmp[1]) {
+			if (!tmp[1]) { // se dopo '<' non c'e' alcun carattere...
 				fprintf(stderr, "Parsing error: no path specified for input redirection\n");
 				goto fail;
 			}
-			result->in_pathname = my_strdup(tmp+1);
-		} else if (*tmp == '>') {
-			if (result->out_pathname) {
+			result->in_pathname = my_strdup(tmp+1); // +1 e' per \0
+		} else if (*tmp == '>') { 
+			if (result->out_pathname) { // se esiste gia un out_pathname ...
 				fprintf(stderr, "Parsing error: cannot have more than one output redirection\n");
 				goto fail;
 			}
-			if (!tmp[1]) {
+			if (!tmp[1]) { // se dopo '>' non c'e' alcun carattere...
 				fprintf(stderr, "Parsing error: no path specified for output redirection\n");
 				goto fail;
 			}
-			result->out_pathname = my_strdup(tmp+1);
+			result->out_pathname = my_strdup(tmp+1); // di nuovo: il +1 e' per \0
 		} else {
 			if (*tmp=='$') {
 				/* Make tmp point to the value of the corresponding environment variable, if any, or the empty string otherwise */
 				/*** TO BE DONE START ***/
+					char aux[sizeof(&tmp)-1]; // -1 perche' voglio togliere $
+					for(int i=1; i<sizeof(&tmp); i++){ // copio tmp (meno $) in aux
+						aux[i-1] = tmp[i];
+					}
+					tmp = getenv(aux); // passo aux come argomento di getenv, il risultato sara' un puntatore salvato in tmp.
+					if(!tmp) fatal_errno("getenv() failed");
+
 				/*** TO BE DONE END ***/
 			}
 			result->args[result->n_args++] = my_strdup(tmp);
@@ -228,6 +234,9 @@ check_t check_redirections(const line_t * const l)
 	 * message and return CHECK_FAILED otherwise
 	 */
 	/*** TO BE DONE START ***/
+	for(int i = 1; i < l->n_commands; i++){
+		
+	}
 	/*** TO BE DONE END ***/
 	return CHECK_OK;
 }
