@@ -234,8 +234,15 @@ check_t check_redirections(const line_t * const l)
 	 * message and return CHECK_FAILED otherwise
 	 */
 	/*** TO BE DONE START ***/
-	for(int i = 1; i < l->n_commands; i++){
-		
+	for(int i = 0; i < l->n_commands; i++){
+		if(i>0 && l->commands[i]->in_pathname != NULL){
+			fprintf(stderr, "Only the first command of a line can have input-redirection");
+			return CHECK_FAILED;
+		}
+		if(i < l->n_commands -1 && l->commands[i]->out_pathname != NULL){
+			fprintf(stderr, "Only the last command of a line can have output-redirection");
+			return CHECK_FAILED;
+		}
 	}
 	/*** TO BE DONE END ***/
 	return CHECK_OK;
@@ -252,6 +259,20 @@ check_t check_cd(const line_t * const l)
 	 * message and return CHECK_FAILED otherwise
 	 */
 	/*** TO BE DONE START ***/
+	if(strncmp("cd",l->commands[0]->args[0],2) == 0){
+		if(l->n_commands > 1){ 
+				fprintf(stderr, "Too many arguments to be a 'cd' command.\n");
+				return CHECK_FAILED;
+		}
+		if(l->commands[0]->in_pathname || l->commands[0]->out_pathname){
+				fprintf(stderr, "'cd' command cannot have redirectionsi.\n");
+				return CHECK_FAILED;
+		}
+		if(l->commands[0]->n_args >1){
+				fprintf(stderr, "Too many arguments for a 'cd' command.\n");
+				return CHECK_FAILED;
+		}
+	}
 	/*** TO BE DONE END ***/
 	return CHECK_OK;
 }
