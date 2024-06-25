@@ -284,6 +284,25 @@ void wait_for_children()
 	 * Similarly, if a child is killed by a signal, then you should print a message specifying its PID, signal number and signal name.
 	 */
 	/*** TO BE DONE START ***/
+
+		int *wstatus;
+
+		while(1){
+
+			pid_t pid = wait(&wstatus);
+			if(pid == -1) fatal_errno("wait() failed in 'wait_for_children'");
+
+			if(WIFEXITED(wstatus)){ // returns true if the child terminated normally, that is, by calling exit() or by returning from main().
+				fprintf(stderr,"Exit status: %d\n",WEXITSTATUS(wstatus)); //returns the exit status of the child.
+			} else if (WIFSIGNALED(wstatus)) { // returns true if the child process was terminated by a signal.
+        fprintf(stderr, "killed by signal %d\n", WTERMSIG(wstatus)); // returns the number of the signal that caused the child process to terminate.
+            } else if (WIFSTOPPED(wstatus)) {
+                fprintf(stderr, "stopped by signal %d\n", WSTOPSIG(wstatus));
+            } else if (WIFCONTINUED(wstatus)) {
+                fprintf(stderr, "continued\n");
+            }
+        }
+		
 	/*** TO BE DONE END ***/
 }
 
