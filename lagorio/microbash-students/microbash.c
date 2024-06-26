@@ -285,11 +285,11 @@ void wait_for_children()
 	 */
 	/*** TO BE DONE START ***/
 
-		int *wstatus;
+		int *wstatus = 0;
 
-		while(1){
+		while(!wstatus){
 
-			pid_t pid = wait(&wstatus);
+			pid_t pid = waitpid(-1, &wstatus, NULL);
 			if(pid == -1) fatal_errno("wait() failed in 'wait_for_children'");
 
 			if(WIFEXITED(wstatus)){ // returns true if the child terminated normally, that is, by calling exit() or by returning from main().
