@@ -88,18 +88,15 @@ void free_command(command_t * const c)
 {
 	assert(c==0 || c->n_args==0 || (c->n_args > 0 && c->args[c->n_args] == 0)); /* sanity-check: if c is not null, then it is either empty (in case of parsing error) or its args are properly NULL-terminated */
 	/*** TO BE DONE START ***/
-	for(int i = 0; i < n_args; i++){ // libero la memoria di ogni indice dell'array di stringhe.
+	for(int i = 0; i < c->n_args; i++){ // libero la memoria di ogni indice dell'array di stringhe.
 		free(c->args[i]);
-		c->args[i] = NULL;
 	}
 
-	free(args); // ora libero la memoria dell'array stesso.
+	free(c->args); // ora libero la memoria dell'array stesso.
 	// libero il resto delgi elementi nel command_t:
-	c-n_args = 0; // questo probabilmente e' inutile
-	free(out_pathname);
-	out_pathname = NULL;
-	free(in_pathname);
-	in_pathname = NULL;
+	c->n_args = 0; // questo probabilmente e' inutile
+	free(c->out_pathname);
+	free(c->in_pathname);
 	// ora libero la memoria del command_t 'c'.
 	free(c);
 	/*** TO BE DONE END ***/
@@ -109,14 +106,13 @@ void free_line(line_t * const l)
 {
 	assert(l==0 || l->n_commands>=0); /* sanity-check */
 	/*** TO BE DONE START ***/
-	for(int i = 0; i < n_commands; i++){ // libero tutte le celle dell'array di comandi.
-		free(l->commands[i]);
+	for(int i = 0; i < l->n_commands; i++){ // libero tutte le celle dell'array di comandi.
+		free_command(l->commands[i]);
 		l->commands[i] = NULL;
 	}
-	// ora imposto n_commands a 0 e libero la memoria occupata puntata da 'l', poi imposto l a NULL.
+	// ora imposto n_commands a 0 e libero la memoria occupata puntata da 'l'
 	l->n_commands = 0; // questo probabilmente e' inutile
 	free(l);
-	l->NULL;
 	/*** TO BE DONE END ***/
 }
 
@@ -285,23 +281,20 @@ void wait_for_children()
 	 */
 	/*** TO BE DONE START ***/
 
-		int *wstatus;
+    // ### wait(): on success, returns the process ID of the terminated child; on failure, -1 
+    // ### If errno == ECHILD (for wait()) The calling process does not have any unwaited-for children.
+		int wstatus;
 		pid_t pid;
 
-		while((pid = wait(&wstatus)) != -1){
-
-//			if(pid == -1) fatal_errno("wait() failed in 'wait_for_children'"); // questa riga non verrebbe mai eseguita
+		// If  wstatus  is not NULL, wait() and waitpid() store status information in the int to which it points.
+		while((pid = wait(&wstatus)) < 0 || errno != ECHILD){
 
 			if(WIFEXITED(wstatus)){ // returns true if the child terminated normally, that is, by calling exit() or by returning from main().
-				fprintf(stderr,"Exit status: %d\n",WEXITSTATUS(wstatus)); //returns the exit status of the child.
+				fprintf(stderr,"PID %d exited with status %d\n",pid, WEXITSTATUS(wstatus)); //returns the exit status of the child.
 			} else if (WIFSIGNALED(wstatus)) { // returns true if the child process was terminated by a signal.
-        fprintf(stderr, "killed by signal %d\n", WTERMSIG(wstatus)); // returns the number of the signal that caused the child process to terminate.
-            } else if (WIFSTOPPED(wstatus)) {
-                fprintf(stderr, "stopped by signal %d\n", WSTOPSIG(wstatus));
-            } else if (WIFCONTINUED(wstatus)) {
-                fprintf(stderr, "continued\n");
-            }
-        }
+        fprintf(stderr, "PID %d exited with status %d\n",pid, WTERMSIG(wstatus)); // returns the number of the signal that caused the child process to terminate.
+            }         
+		}
 		
 	/*** TO BE DONE END ***/
 }
@@ -312,6 +305,10 @@ void redirect(int from_fd, int to_fd)
 	 * That is, use dup/dup2/close to make to_fd equivalent to the original from_fd, and then close from_fd
 	 */
 	/*** TO BE DONE START ***/
+		if(from_fd != NO_REDIR){
+			if(dup2(from_fd, to_fd) == -1) fatal_errno("dup2 failed");
+			if(close(from_fd) == -1) fatal_errno("close() failed");
+		}
 	/*** TO BE DONE END ***/
 }
 
@@ -325,6 +322,13 @@ void run_child(const command_t * const c, int c_stdin, int c_stdout)
 	 * (printing error messages in case of failure, obviously)
 	 */
 	/*** TO BE DONE START ***/
+		pid_t pidFork;
+		pidFork = fork();
+		if(pidFork == 0){
+			if(dup2(STDIN_FILENO, c_stdin) == -1) fatal_errno("dup2 in run_child failed");
+			if(dup2(STDOUT_FILENO, c_stdout) == -1) fatal_errno("dup2 in run_child failed");
+			if(execvp(c->args[0], c->args) == -1) fatal_errno("execvp() failed");
+		}
 	/*** TO BE DONE END ***/
 }
 
@@ -334,6 +338,7 @@ void change_current_directory(char *newdir)
 	 * (printing an appropriate error message if the syscall fails)
 	 */
 	/*** TO BE DONE START ***/
+		if(chdir(newdir) == -1) fatal_errno("chdir() failed");
 	/*** TO BE DONE END ***/
 }
 
@@ -361,6 +366,9 @@ void execute_line(const line_t * const l)
 			/* Open c->in_pathname and assign the file-descriptor to curr_stdin
 			 * (handling error cases) */
 			/*** TO BE DONE START ***/
+			curr_stdin = open(c->in_pathname,  O_RDONLY);
+			if(curr_stdin == -1) fatal_errno("open() failed in 'execute_line()'");
+
 			/*** TO BE DONE END ***/
 		}
 		if (c->out_pathname) {
@@ -368,11 +376,14 @@ void execute_line(const line_t * const l)
 			/* Open c->out_pathname and assign the file-descriptor to curr_stdout
 			 * (handling error cases) */
 			/*** TO BE DONE START ***/
+			curr_stdout = open(c->out_pathname,  O_WRONLY);
+			if(curr_stdout == -1) fatal_errno("open() failed in 'execute_line()'");
 			/*** TO BE DONE END ***/
 		} else if (a != (l->n_commands - 1)) { /* unless we're processing the last command, we need to connect the current command and the next one with a pipe */
 			int fds[2];
 			/* Create a pipe in fds, and set FD_CLOEXEC in both file-descriptor flags */
 			/*** TO BE DONE START ***/
+			if(pipe2(fds, O_CLOEXEC) == -1)fatal_errno("pipe() failed in 'execute_line()'");
 			/*** TO BE DONE END ***/
 			curr_stdout = fds[1];
 			next_stdin = fds[0];
@@ -407,6 +418,9 @@ int main()
 		 * The memory area must be allocated (directly or indirectly) via malloc.
 		 */
 		/*** TO BE DONE START ***/
+		pwd = NULL;
+		pwd = getcwd(pwd,0);
+		if(!pwd) fatal_errno("getcwd() failed in 'main()'");
 		/*** TO BE DONE END ***/
 		pwd = my_realloc(pwd, strlen(pwd) + prompt_suffix_len + 1);
 		strcat(pwd, prompt_suffix);
