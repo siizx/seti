@@ -108,10 +108,8 @@ void free_line(line_t * const l)
 	/*** TO BE DONE START ***/
 	for(int i = 0; i < l->n_commands; i++){ // libero tutte le celle dell'array di comandi.
 		free_command(l->commands[i]);
-		l->commands[i] = NULL;
 	}
-	// ora imposto n_commands a 0 e libero la memoria occupata puntata da 'l'
-	l->n_commands = 0; // questo probabilmente e' inutile
+	free(l->commands);
 	free(l);
 	/*** TO BE DONE END ***/
 }
@@ -176,12 +174,8 @@ command_t *parse_cmd(char * const cmdstr)
 			if (*tmp=='$') {
 				/* Make tmp point to the value of the corresponding environment variable, if any, or the empty string otherwise */
 				/*** TO BE DONE START ***/
-					char aux[sizeof(&tmp)-1]; // -1 perche' voglio togliere $
-					for(int i=1; i<sizeof(&tmp); i++){ // copio tmp (meno $) in aux
-						aux[i-1] = tmp[i];
-					}
-					tmp = getenv(aux); // passo aux come argomento di getenv, il risultato sara' un puntatore salvato in tmp.
-					if(!tmp) fatal_errno("getenv() failed");
+					tmp = getenv(tmp+1); // passo aux come argomento di getenv, il risultato sara' un puntatore salvato in tmp.
+					if(!tmp) tmp = "";
 
 				/*** TO BE DONE END ***/
 			}
@@ -255,7 +249,7 @@ check_t check_cd(const line_t * const l)
 	 * message and return CHECK_FAILED otherwise
 	 */
 	/*** TO BE DONE START ***/
-	if(strncmp("cd",l->commands[0]->args[0],2) == 0){
+	if(strncmp(CD,l->commands[0]->args[0],2) == 0){
 		if(l->n_commands > 1){ 
 				fprintf(stderr, "Too many arguments to be a 'cd' command.\n");
 				return CHECK_FAILED;
@@ -287,7 +281,7 @@ void wait_for_children()
 		pid_t pid;
 
 		// If  wstatus  is not NULL, wait() and waitpid() store status information in the int to which it points.
-		while((pid = wait(&wstatus)) < 0 || errno != ECHILD){
+		while((pid = wait(&wstatus)) != -1 || errno != ECHILD){
 
 			if(WIFEXITED(wstatus)){ // returns true if the child terminated normally, that is, by calling exit() or by returning from main().
 				fprintf(stderr,"PID %d exited with status %d\n",pid, WEXITSTATUS(wstatus)); //returns the exit status of the child.
