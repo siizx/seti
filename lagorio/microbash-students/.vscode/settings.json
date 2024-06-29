@@ -1,0 +1,9 @@
+{
+    "makefile.launchConfigurations": [
+        {
+            "cwd": "/home/andrea/git/seti/lagorio/microbash-students",
+            "binaryPath": "/home/andrea/git/seti/lagorio/microbash-students/microbash",
+            "binaryArgs": []
+        }
+    ]
+}

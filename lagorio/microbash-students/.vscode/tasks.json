@@ -1,0 +1,26 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "build microbash",
+            "type": "shell",
+            "command": "make",
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "problemMatcher": "$gcc",
+            "args": [
+                "all"
+            ]
+        },
+        {
+            "label": "clean microbash",
+            "type": "shell",
+            "command": "make",
+            "args": [
+                "clean"
+            ]
+        }
+    ]
+}
