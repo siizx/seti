@@ -1,4 +1,4 @@
-/* 
+/*
  * incApache_aux.c: funzioni ausiliarie per il web server
  *
  * Programma sviluppato a supporto del laboratorio di
@@ -49,14 +49,18 @@ char *my_strdup(const char *const s)
 ssize_t send_all(int fd, const char *ptr, size_t n, int flags)
 {
 	size_t n_left = n;
-	while (n_left > 0) {
+	while (n_left > 0)
+	{
 		ssize_t n_written = send(fd, ptr, n_left, flags);
-		if (n_written < 0) {
+		if (n_written < 0)
+		{
 			if (n_left == n)
 				return -1; /* nothing has been sent */
 			else
 				break; /* we have sent something */
-		} else if (n_written == 0) {
+		}
+		else if (n_written == 0)
+		{
 			break;
 		}
 		n_left -= n_written;
@@ -66,34 +70,33 @@ ssize_t send_all(int fd, const char *ptr, size_t n, int flags)
 	return n - n_left;
 }
 
-
 static pthread_mutex_t my_timegm_mutex = PTHREAD_MUTEX_INITIALIZER;
 
 time_t my_timegm(struct tm *tm)
 {
-               time_t ret;
-               char *tz;
+	time_t ret;
+	char *tz;
 
-        /*** Guess what is missing here ... ***/
-/*** TO BE DONE 7.0 START ***/
+	/*** Guess what is missing here ... ***/
+	/*** TO BE DONE 7.0 START ***/
 
+	/*** TO BE DONE 7.0 END ***/
 
-/*** TO BE DONE 7.0 END ***/
+	setenv("TZ", "", 1);
+	tzset();
+	ret = mktime(tm);
+	if (tz)
+	{
+		setenv("TZ", tz, 1);
+		free(tz);
+	}
+	else
+		unsetenv("TZ");
 
-               setenv("TZ", "", 1);
-               tzset();
-               ret = mktime(tm);
-               if (tz) {
-                   setenv("TZ", tz, 1);
-                   free(tz);
-               } else
-                   unsetenv("TZ");
+	/*** Guess what is missing here ... ***/
+	/*** TO BE DONE 7.0 START ***/
 
-        /*** Guess what is missing here ... ***/
-/*** TO BE DONE 7.0 START ***/
+	/*** TO BE DONE 7.0 END ***/
 
-
-/*** TO BE DONE 7.0 END ***/
-
-               return ret;
+	return ret;
 }
